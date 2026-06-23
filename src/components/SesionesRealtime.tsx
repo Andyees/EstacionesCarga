@@ -1,7 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { RefreshCw } from 'lucide-react'
+
+const INTERVALO_SEG = 30
 
 interface Sesion {
   id: string
@@ -16,31 +19,32 @@ interface Sesion {
 
 export default function SesionesRealtime({ iniciales }: { iniciales: Sesion[] }) {
   const [sesiones, setSesiones] = useState<Sesion[]>(iniciales)
+  const [countdown, setCountdown] = useState(INTERVALO_SEG)
+
+  const recargar = useCallback(async () => {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('sesiones_carga')
+      .select('*, estaciones(nombre), perfiles(nombre_completo, empresa)')
+      .order('created_at', { ascending: false })
+      .limit(100)
+    if (data) setSesiones(data as unknown as Sesion[])
+    setCountdown(INTERVALO_SEG)
+  }, [])
 
   useEffect(() => {
-    const supabase = createClient()
-
-    async function recargar() {
-      const { data } = await supabase
-        .from('sesiones_carga')
-        .select('*, estaciones(nombre), perfiles(nombre_completo, empresa)')
-        .order('created_at', { ascending: false })
-        .limit(100)
-      if (data) setSesiones(data as unknown as Sesion[])
-    }
-
-    const channel = supabase
-      .channel('sesiones-historial')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sesiones_carga' }, () => {
-        recargar()
-      })
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
-  }, [])
+    const interval = setInterval(recargar, INTERVALO_SEG * 1000)
+    const tick = setInterval(() => setCountdown(c => (c > 0 ? c - 1 : INTERVALO_SEG)), 1000)
+    return () => { clearInterval(interval); clearInterval(tick) }
+  }, [recargar])
 
   return (
     <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="flex justify-end px-4 pt-3 pb-1">
+        <button onClick={recargar} className="flex items-center gap-1 text-xs text-green-600 hover:text-green-800 transition">
+          <RefreshCw className="w-3.5 h-3.5" />{countdown}s
+        </button>
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>

@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Zap, CheckCircle2, RefreshCw } from 'lucide-react'
 import type { Estacion } from '@/lib/supabase/types'
+
+const INTERVALO_SEG = 30
 
 interface SesionActiva {
   estacion_id: string
@@ -20,54 +22,53 @@ interface Props {
 export default function EstacionesRealtime({ estacionesIniciales, sesionesInicialesMap }: Props) {
   const [ocupadas, setOcupadas] = useState<Record<string, SesionActiva>>(sesionesInicialesMap)
   const [ultimaActualizacion, setUltimaActualizacion] = useState(new Date())
+  const [countdown, setCountdown] = useState(INTERVALO_SEG)
+
+  const recargar = useCallback(async () => {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('sesiones_carga')
+      .select('estacion_id, placa, hora_inicio, perfiles(nombre_completo)')
+      .eq('estado', 'activa')
+
+    const mapa: Record<string, SesionActiva> = {}
+    data?.forEach(s => {
+      if (s.estacion_id) {
+        const perfil = Array.isArray(s.perfiles) ? s.perfiles[0] : s.perfiles
+        mapa[s.estacion_id] = {
+          estacion_id: s.estacion_id,
+          placa: s.placa,
+          nombre_completo: (perfil as any)?.nombre_completo ?? '—',
+          desde: s.hora_inicio,
+        }
+      }
+    })
+    setOcupadas(mapa)
+    setUltimaActualizacion(new Date())
+    setCountdown(INTERVALO_SEG)
+  }, [])
 
   useEffect(() => {
-    const supabase = createClient()
-
-    async function recargarSesiones() {
-      const { data } = await supabase
-        .from('sesiones_carga')
-        .select('estacion_id, placa, hora_inicio, perfiles(nombre_completo)')
-        .eq('estado', 'activa')
-
-      const mapa: Record<string, SesionActiva> = {}
-      data?.forEach(s => {
-        if (s.estacion_id) {
-          const perfil = Array.isArray(s.perfiles) ? s.perfiles[0] : s.perfiles
-          mapa[s.estacion_id] = {
-            estacion_id: s.estacion_id,
-            placa: s.placa,
-            nombre_completo: (perfil as any)?.nombre_completo ?? '—',
-            desde: s.hora_inicio,
-          }
-        }
-      })
-      setOcupadas(mapa)
-      setUltimaActualizacion(new Date())
-    }
-
-    // Suscripción a cambios en sesiones_carga
-    const channel = supabase
-      .channel('sesiones-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sesiones_carga' }, () => {
-        recargarSesiones()
-      })
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
-  }, [])
+    const interval = setInterval(recargar, INTERVALO_SEG * 1000)
+    const tick = setInterval(() => setCountdown(c => (c > 0 ? c - 1 : INTERVALO_SEG)), 1000)
+    return () => { clearInterval(interval); clearInterval(tick) }
+  }, [recargar])
 
   const libres = estacionesIniciales.filter(e => !ocupadas[e.id]).length
 
   return (
     <div className="bg-white rounded-xl shadow p-5">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-gray-700">Estado de estaciones — tiempo real</h2>
-        <div className="flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-gray-700">Estado de estaciones</h2>
+        <div className="flex items-center gap-3">
           <span className="text-xs text-gray-400">
             {libres}/{estacionesIniciales.length} libres · actualizado {ultimaActualizacion.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </span>
-          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" title="En vivo" />
+          <button onClick={recargar} title="Actualizar ahora"
+            className="flex items-center gap-1 text-xs text-green-600 hover:text-green-800 transition">
+            <RefreshCw className="w-3.5 h-3.5" />
+            {countdown}s
+          </button>
         </div>
       </div>
 
