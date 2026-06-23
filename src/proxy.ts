@@ -6,10 +6,12 @@ export function proxy(request: NextRequest) {
   const user = sessionCookie ? decodeSession(sessionCookie.value) : null
 
   const { pathname } = request.nextUrl
-  const isProtected = ['/inicio-carga', '/fin-carga', '/admin'].some(p => pathname.startsWith(p))
+  const isAdminLoginPage = pathname === '/admin/login'
+  const isProtected = ['/inicio-carga', '/fin-carga', '/admin'].some(p => pathname.startsWith(p)) && !isAdminLoginPage
   const isAuthPage = ['/login', '/registro'].some(p => pathname.startsWith(p))
 
   if (isProtected && !user) {
+    if (pathname.startsWith('/admin')) return NextResponse.redirect(new URL('/admin/login', request.url))
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -17,7 +19,11 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/inicio-carga', request.url))
   }
 
-  if (pathname.startsWith('/admin') && user && user.rol !== 'admin') {
+  if (isAdminLoginPage && user && user.rol === 'admin') {
+    return NextResponse.redirect(new URL('/admin', request.url))
+  }
+
+  if (pathname.startsWith('/admin') && !isAdminLoginPage && user && user.rol !== 'admin') {
     return NextResponse.redirect(new URL('/inicio-carga', request.url))
   }
 

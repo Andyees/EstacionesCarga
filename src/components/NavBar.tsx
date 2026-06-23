@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Zap, LogOut, LayoutDashboard, BatteryCharging, BatteryFull } from 'lucide-react'
+import { Zap, LogOut, LayoutDashboard, BatteryCharging, BatteryFull, Shield } from 'lucide-react'
 
 export default function NavBar({ nombre, rol }: { nombre: string; rol: string }) {
   const router = useRouter()
@@ -48,8 +48,13 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
             <BatteryFull className="w-5 h-5" />
           </NavItem>
           {rol === 'admin' && (
-            <NavItem href="/admin" label="Admin" active={isActive('/admin')}>
+            <NavItem href="/admin" label="Dashboard" active={pathname === '/admin'}>
               <LayoutDashboard className="w-5 h-5" />
+            </NavItem>
+          )}
+          {rol === 'admin' && (
+            <NavItem href="/admin/admins" label="Admins" active={isActive('/admin/admins')}>
+              <Shield className="w-5 h-5" />
             </NavItem>
           )}
         </div>
