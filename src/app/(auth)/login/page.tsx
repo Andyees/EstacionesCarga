@@ -39,15 +39,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="flex flex-col items-center mb-8">
-            <div className="bg-green-600 rounded-full p-3 mb-3">
-              <Zap className="w-8 h-8 text-white" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4 py-8">
+      <div className="w-full max-w-sm">
+        <div className="bg-white rounded-2xl shadow-xl p-6">
+          <div className="flex flex-col items-center mb-7">
+            <div className="bg-green-600 rounded-full p-4 mb-3 shadow-lg">
+              <Zap className="w-9 h-9 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Celsia EV Charging</h1>
-            <p className="text-gray-500 text-sm mt-1">Ingresa con tu correo electrónico</p>
+            <p className="text-gray-500 text-sm mt-1 text-center">Ingresa con tu correo electrónico</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -58,8 +58,10 @@ export default function LoginPage() {
                 required
                 value={correo}
                 onChange={e => setCorreo(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
                 placeholder="tu@correo.com"
+                autoComplete="email"
+                inputMode="email"
                 autoFocus
               />
             </div>
@@ -76,7 +78,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-60"
+              className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold py-3.5 rounded-xl transition disabled:opacity-60 text-base"
             >
               {loading ? 'Verificando...' : 'Ingresar'}
             </button>

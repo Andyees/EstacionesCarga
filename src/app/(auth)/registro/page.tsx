@@ -52,68 +52,73 @@ export default function RegistroPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4 py-8">
-      <div className="w-full max-w-lg">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 px-4 py-8">
+      <div className="w-full max-w-sm mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-6">
           <div className="flex flex-col items-center mb-6">
-            <div className="bg-green-600 rounded-full p-3 mb-3">
+            <div className="bg-green-600 rounded-full p-3 mb-3 shadow-lg">
               <Zap className="w-7 h-7 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Registro de Usuario</h1>
-            <p className="text-gray-500 text-sm mt-1">Estaciones de Carga Eléctrica Celsia</p>
+            <h1 className="text-xl font-bold text-gray-900">Registro de Usuario</h1>
+            <p className="text-gray-500 text-sm mt-1 text-center">Estaciones de Carga Eléctrica Celsia</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Field label="Nombre completo *">
-              <input required value={form.nombre_completo} onChange={e => set('nombre_completo', e.target.value)} className={inputCls} placeholder="Juan Pérez" />
+              <input required value={form.nombre_completo} onChange={e => set('nombre_completo', e.target.value)} className={inputCls} placeholder="Juan Pérez" autoComplete="name" />
             </Field>
             <Field label="Empresa *">
-              <input required value={form.empresa} onChange={e => set('empresa', e.target.value)} className={inputCls} placeholder="Mi Empresa S.A." />
+              <input required value={form.empresa} onChange={e => set('empresa', e.target.value)} className={inputCls} placeholder="Mi Empresa S.A." autoComplete="organization" />
             </Field>
             <Field label="Correo electrónico *">
-              <input required type="email" value={form.correo} onChange={e => set('correo', e.target.value)} className={inputCls} placeholder="tu@correo.com" />
+              <input required type="email" value={form.correo} onChange={e => set('correo', e.target.value)} className={inputCls} placeholder="tu@correo.com" inputMode="email" autoComplete="email" />
             </Field>
             <Field label="Número de celular *">
-              <input required type="tel" value={form.celular} onChange={e => set('celular', e.target.value)} className={inputCls} placeholder="3001234567" />
+              <input required type="tel" value={form.celular} onChange={e => set('celular', e.target.value)} className={inputCls} placeholder="3001234567" inputMode="tel" autoComplete="tel" />
             </Field>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Placa *">
-                <input required value={form.placa} onChange={e => set('placa', e.target.value.toUpperCase())} className={inputCls} placeholder="ABC123" />
-              </Field>
-              <Field label="Marca del vehículo *">
-                <input required value={form.marca_vehiculo} onChange={e => set('marca_vehiculo', e.target.value)} className={inputCls} placeholder="Tesla, BYD..." />
-              </Field>
-            </div>
+            <Field label="Placa *">
+              <input required value={form.placa} onChange={e => set('placa', e.target.value.toUpperCase())} className={inputCls} placeholder="ABC123" />
+            </Field>
+            <Field label="Marca del vehículo *">
+              <input required value={form.marca_vehiculo} onChange={e => set('marca_vehiculo', e.target.value)} className={inputCls} placeholder="Tesla, BYD, Renault..." />
+            </Field>
 
             <Field label="Tipo de conector *">
-              <div className="flex gap-4 mt-1">
+              <div className="grid grid-cols-3 gap-2 mt-1">
                 {TIPOS_CONECTOR.map(tipo => (
-                  <label key={tipo} className="flex items-center gap-2 cursor-pointer">
+                  <label key={tipo} className={`flex items-center justify-center gap-1.5 cursor-pointer border-2 rounded-xl py-3 text-sm font-medium transition-colors ${
+                    form.tipo_conector === tipo
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-gray-200 text-gray-600'
+                  }`}>
                     <input type="radio" name="tipo_conector" value={tipo}
                       checked={form.tipo_conector === tipo} onChange={e => set('tipo_conector', e.target.value)}
-                      className="accent-green-600" />
-                    <span className="text-sm text-gray-700">{tipo}</span>
+                      className="sr-only" />
+                    {tipo}
                   </label>
                 ))}
               </div>
             </Field>
 
-            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-              <p className="text-sm text-gray-700 mb-2 font-medium">Reglamento de Uso de la Estación de Carga Vehículos Eléctricos Celsia</p>
-              <p className="text-xs text-gray-500 mb-3">
-                Al aceptar, confirma que ha leído y acepta las normas de uso de las estaciones de carga eléctrica de Celsia.
+            <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
+              <p className="text-xs text-gray-600 mb-3">
+                Al registrarte aceptas las normas de uso de las estaciones de carga eléctrica de Celsia.
               </p>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.acepto_reglamento} onChange={e => set('acepto_reglamento', e.target.checked)}
-                  className="accent-green-600 w-4 h-4" />
-                <span className="text-sm text-gray-700 font-medium">Acepto el Reglamento de Uso — SI</span>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
+                  form.acepto_reglamento ? 'bg-green-600 border-green-600' : 'border-gray-300'
+                }`} onClick={() => set('acepto_reglamento', !form.acepto_reglamento)}>
+                  {form.acepto_reglamento && <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                </div>
+                <input type="checkbox" checked={form.acepto_reglamento} onChange={e => set('acepto_reglamento', e.target.checked)} className="sr-only" />
+                <span className="text-sm text-gray-700 font-medium">Acepto el Reglamento de Uso</span>
               </label>
             </div>
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
             <button type="submit" disabled={loading}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-60">
+              className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold py-3.5 rounded-xl transition disabled:opacity-60 text-base">
               {loading ? 'Registrando...' : 'Registrarme'}
             </button>
           </form>
@@ -128,7 +133,7 @@ export default function RegistroPage() {
   )
 }
 
-const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+const inputCls = "w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

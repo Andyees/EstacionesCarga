@@ -93,53 +93,65 @@ export default function FinCargaPage() {
   const inicio = new Date(sesionActiva.hora_inicio)
 
   return (
-    <div className="bg-white rounded-2xl shadow p-8">
-      <div className="flex items-center gap-3 mb-6">
+    <div className="bg-white rounded-2xl shadow p-5">
+      <div className="flex items-center gap-3 mb-5">
         <div className="bg-blue-100 rounded-full p-2">
           <BatteryFull className="w-6 h-6 text-blue-600" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Finalización de Carga</h1>
-          <p className="text-sm text-gray-500">Registra el fin de tu sesión de carga</p>
+          <h1 className="text-lg font-bold text-gray-900">Finalización de Carga</h1>
+          <p className="text-xs text-gray-500">Registra el fin de tu sesión</p>
         </div>
       </div>
 
-      {/* Resumen sesión activa */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-        <p className="text-sm font-semibold text-green-800 mb-2">Sesión en curso</p>
-        <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
-          <span className="text-gray-500">Placa:</span><span className="font-medium">{sesionActiva.placa}</span>
-          <span className="text-gray-500">Estación:</span><span className="font-medium">{sesionActiva.estaciones?.nombre || '—'}</span>
-          <span className="text-gray-500">Conector:</span><span className="font-medium">{sesionActiva.tipo_conector}</span>
-          <span className="text-gray-500">Inicio:</span><span className="font-medium">{inicio.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</span>
+      <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5">
+        <p className="text-sm font-semibold text-green-800 mb-3">Sesión en curso</p>
+        <div className="space-y-2">
+          <Row label="Placa" value={sesionActiva.placa} />
+          <Row label="Estación" value={sesionActiva.estaciones?.nombre || '—'} />
+          <Row label="Conector" value={sesionActiva.tipo_conector} />
+          <Row label="Inicio" value={inicio.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })} />
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Hora de finalización (opcional)</label>
           <input type="time" value={horaFin} onChange={e => setHoraFin(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <p className="text-xs text-gray-400 mt-1">Si no indicas hora, se registra la hora actual.</p>
         </div>
 
-        <div className="border border-blue-200 bg-blue-50 rounded-lg p-4">
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input type="checkbox" checked={confirmacion} onChange={e => setConfirmacion(e.target.checked)}
-              className="accent-blue-600 mt-0.5 w-4 h-4" />
+        <div className="border border-blue-200 bg-blue-50 rounded-xl p-4">
+          <label className="flex items-start gap-3 cursor-pointer" onClick={() => setConfirmacion(c => !c)}>
+            <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 mt-0.5 ${
+              confirmacion ? 'bg-blue-600 border-blue-600' : 'border-gray-300 bg-white'
+            }`}>
+              {confirmacion && <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+            </div>
+            <input type="checkbox" checked={confirmacion} onChange={e => setConfirmacion(e.target.checked)} className="sr-only" />
             <span className="text-sm text-gray-700">
-              <strong>Confirmación:</strong> ¿Confirma que ha retirado el vehículo y liberado la estación? — <strong>SI</strong>
+              Confirmo que he retirado el vehículo y liberado la estación
             </span>
           </label>
         </div>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-red-500 text-sm bg-red-50 rounded-lg p-3">{error}</p>}
 
         <button type="submit" disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-60">
+          className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-4 rounded-xl transition disabled:opacity-60 text-base">
           {loading ? 'Registrando...' : 'Registrar finalización de carga'}
         </button>
       </form>
+    </div>
+  )
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between text-sm">
+      <span className="text-gray-500">{label}:</span>
+      <span className="font-medium text-gray-800">{value}</span>
     </div>
   )
 }

@@ -13,7 +13,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar nombre={user.nombre_completo} rol={user.rol} />
-      <main className="max-w-2xl mx-auto px-4 py-8">{children}</main>
+      <main className="max-w-2xl mx-auto px-4 py-5 pb-6">{children}</main>
     </div>
   )
 }

@@ -24,8 +24,6 @@ export default function InicioCargaPage() {
   useEffect(() => {
     async function load() {
       const supabase = createClient()
-
-      // Leer usuario desde cookie
       const cookieVal = document.cookie.split('; ').find(r => r.startsWith('celsia_session='))?.split('=')[1]
       if (!cookieVal) return
       const user = JSON.parse(atob(cookieVal))
@@ -62,7 +60,6 @@ export default function InicioCargaPage() {
     if (!cookieVal) { setError('Sesión expirada.'); setLoading(false); return }
     const user = JSON.parse(atob(cookieVal))
 
-    // Verificar no tenga sesión activa
     const { data: activa } = await supabase
       .from('sesiones_carga')
       .select('id')
@@ -72,6 +69,37 @@ export default function InicioCargaPage() {
 
     if (activa) {
       setError('Ya tienes una sesión de carga activa. Finalízala antes de iniciar otra.')
+      setLoading(false)
+      return
+    }
+
+    const inicioDia = new Date()
+    inicioDia.setHours(0, 0, 0, 0)
+    const { data: yaUsoHoy } = await supabase
+      .from('sesiones_carga')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('estacion_id', form.estacion_id)
+      .gte('hora_inicio', inicioDia.toISOString())
+      .limit(1)
+
+    if (yaUsoHoy && yaUsoHoy.length > 0) {
+      setError('Ya usaste esta estación hoy. Por favor elige otra estación disponible.')
+      setLoading(false)
+      return
+    }
+
+    const hace4horas = new Date(Date.now() - 4 * 60 * 60 * 1000)
+    const { data: sesionVencida } = await supabase
+      .from('sesiones_carga')
+      .select('id, hora_inicio, estaciones(nombre)')
+      .eq('user_id', user.id)
+      .eq('estado', 'activa')
+      .lte('hora_inicio', hace4horas.toISOString())
+      .single()
+
+    if (sesionVencida) {
+      setError('Tienes una sesión de carga vencida (más de 4 horas). Finalízala primero.')
       setLoading(false)
       return
     }
@@ -110,7 +138,7 @@ export default function InicioCargaPage() {
         <h2 className="text-2xl font-bold text-gray-900 mb-2">¡Carga iniciada!</h2>
         <p className="text-gray-500 mb-6">Tu sesión de carga ha sido registrada correctamente.</p>
         <button onClick={() => { setSuccess(false); setForm(f => ({ ...f, estacion_id: '', hora_inicio: '', confirmacion: false })) }}
-          className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition">
+          className="bg-green-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-green-700 transition w-full">
           Nueva sesión
         </button>
       </div>
@@ -118,18 +146,18 @@ export default function InicioCargaPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow p-8">
-      <div className="flex items-center gap-3 mb-6">
+    <div className="bg-white rounded-2xl shadow p-5">
+      <div className="flex items-center gap-3 mb-5">
         <div className="bg-green-100 rounded-full p-2">
           <BatteryCharging className="w-6 h-6 text-green-600" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Inicio de Carga</h1>
-          <p className="text-sm text-gray-500">Registra el inicio de tu sesión de carga</p>
+          <h1 className="text-lg font-bold text-gray-900">Inicio de Carga</h1>
+          <p className="text-xs text-gray-500">Registra el inicio de tu sesión</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <Field label="Correo electrónico">
           <input value={perfil?.correo || ''} disabled className={`${inputCls} bg-gray-50 text-gray-500`} />
         </Field>
@@ -140,7 +168,7 @@ export default function InicioCargaPage() {
 
         <Field label="Estación *">
           <select required value={form.estacion_id} onChange={e => set('estacion_id', e.target.value)} className={inputCls}>
-            <option value="">Elige</option>
+            <option value="">Selecciona una estación</option>
             {estaciones.map(est => (
               <option key={est.id} value={est.id}>{est.nombre} — {est.ubicacion}</option>
             ))}
@@ -148,12 +176,16 @@ export default function InicioCargaPage() {
         </Field>
 
         <Field label="Tipo de conector *">
-          <div className="flex gap-4 mt-1">
+          <div className="grid grid-cols-3 gap-2 mt-1">
             {TIPOS_CONECTOR.map(tipo => (
-              <label key={tipo} className="flex items-center gap-2 cursor-pointer">
+              <label key={tipo} className={`flex items-center justify-center gap-1.5 cursor-pointer border-2 rounded-xl py-3 text-sm font-medium transition-colors ${
+                form.tipo_conector === tipo
+                  ? 'border-green-500 bg-green-50 text-green-700'
+                  : 'border-gray-200 text-gray-600'
+              }`}>
                 <input type="radio" name="tipo_conector" value={tipo} checked={form.tipo_conector === tipo}
-                  onChange={e => set('tipo_conector', e.target.value)} className="accent-green-600" />
-                <span className="text-sm text-gray-700">{tipo}</span>
+                  onChange={e => set('tipo_conector', e.target.value)} className="sr-only" />
+                {tipo}
               </label>
             ))}
           </div>
@@ -164,20 +196,24 @@ export default function InicioCargaPage() {
           <p className="text-xs text-gray-400 mt-1">Si no indicas hora, se registra la hora actual.</p>
         </Field>
 
-        <div className="border border-green-200 bg-green-50 rounded-lg p-4">
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input type="checkbox" checked={form.confirmacion} onChange={e => set('confirmacion', e.target.checked)}
-              className="accent-green-600 mt-0.5 w-4 h-4" />
+        <div className="border border-green-200 bg-green-50 rounded-xl p-4">
+          <label className="flex items-start gap-3 cursor-pointer" onClick={() => set('confirmacion', !form.confirmacion)}>
+            <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 mt-0.5 ${
+              form.confirmacion ? 'bg-green-600 border-green-600' : 'border-gray-300 bg-white'
+            }`}>
+              {form.confirmacion && <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+            </div>
+            <input type="checkbox" checked={form.confirmacion} onChange={e => set('confirmacion', e.target.checked)} className="sr-only" />
             <span className="text-sm text-gray-700">
-              <strong>Confirmación:</strong> ¿Confirma que ha conectado correctamente el vehículo a la estación seleccionada? — <strong>SI</strong>
+              Confirmo que he conectado correctamente el vehículo a la estación seleccionada
             </span>
           </label>
         </div>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-red-500 text-sm bg-red-50 rounded-lg p-3">{error}</p>}
 
         <button type="submit" disabled={loading}
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-60">
+          className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold py-4 rounded-xl transition disabled:opacity-60 text-base">
           {loading ? 'Registrando...' : 'Registrar inicio de carga'}
         </button>
       </form>
@@ -185,7 +221,7 @@ export default function InicioCargaPage() {
   )
 }
 
-const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+const inputCls = "w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
