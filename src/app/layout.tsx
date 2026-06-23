@@ -13,6 +13,9 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Celsia EV",
   },
+  icons: {
+    apple: "/icon-192.png",
+  },
 };
 
 export const viewport: Viewport = {
