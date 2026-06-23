@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
-import { Activity, Users, BatteryCharging, Clock, Zap, CheckCircle2 } from 'lucide-react'
+import { Activity, Users, BatteryCharging, Clock } from 'lucide-react'
 import AdminCharts from '@/components/AdminCharts'
+import EstacionesRealtime from '@/components/EstacionesRealtime'
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
@@ -38,7 +39,6 @@ export default async function AdminDashboard() {
     }
   })
 
-  // Duración promedio
   const finalizadas = sesionesData?.filter(s => s.estado === 'finalizada' && s.hora_fin) || []
   const duracionPromMin = finalizadas.length > 0
     ? Math.round(finalizadas.reduce((acc, s) => {
@@ -47,7 +47,6 @@ export default async function AdminDashboard() {
       }, 0) / finalizadas.length)
     : 0
 
-  // Por conector
   const porConector = (sesionesData || []).reduce((acc: Record<string, number>, s) => {
     acc[s.tipo_conector] = (acc[s.tipo_conector] || 0) + 1
     return acc
@@ -58,16 +57,17 @@ export default async function AdminDashboard() {
     porConector: Object.entries(porConector).map(([name, value]) => ({ name, value })),
   }
 
-  // Mapa estacion_id -> sesión activa
-  const ocupadas = new Map<string, { placa: string; nombre_completo: string; desde: string }>()
+  // Mapa inicial de estaciones ocupadas para el componente realtime
+  const sesionesMap: Record<string, { estacion_id: string; placa: string; nombre_completo: string; desde: string }> = {}
   sesionesActivasDetalle?.forEach(s => {
     if (s.estacion_id) {
       const perfil = (Array.isArray(s.perfiles) ? s.perfiles[0] : s.perfiles) as { nombre_completo: string } | null
-      ocupadas.set(s.estacion_id, {
+      sesionesMap[s.estacion_id] = {
+        estacion_id: s.estacion_id,
         placa: s.placa,
         nombre_completo: perfil?.nombre_completo ?? '—',
         desde: s.hora_inicio,
-      })
+      }
     }
   })
 
@@ -82,53 +82,11 @@ export default async function AdminDashboard() {
         <StatCard icon={<Clock className="w-5 h-5 text-purple-600" />} label="Duración promedio" value={`${duracionPromMin} min`} color="purple" />
       </div>
 
-      {/* Estado en tiempo real de las 5 estaciones */}
-      <div className="bg-white rounded-xl shadow p-5">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">Estado de estaciones — tiempo real</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {estaciones?.map(est => {
-            const sesion = ocupadas.get(est.id)
-            const ocupada = !!sesion
-            const desde = sesion
-              ? new Date(sesion.desde).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
-              : null
-            return (
-              <div
-                key={est.id}
-                className={`rounded-lg border-2 p-4 flex flex-col gap-2 transition ${
-                  ocupada ? 'border-red-300 bg-red-50' : 'border-green-300 bg-green-50'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Zap className={`w-4 h-4 ${ocupada ? 'text-red-500' : 'text-green-600'}`} />
-                    <span className="font-semibold text-sm text-gray-900">{est.nombre}</span>
-                  </div>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                    ocupada ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                  }`}>
-                    {ocupada ? 'OCUPADA' : 'LIBRE'}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500">{est.ubicacion} · {est.tipo_conector}</p>
-                {ocupada && sesion && (
-                  <div className="text-xs text-red-700 bg-red-100 rounded px-2 py-1 space-y-0.5">
-                    <p><span className="font-medium">Placa:</span> {sesion.placa}</p>
-                    <p><span className="font-medium">Usuario:</span> {sesion.nombre_completo}</p>
-                    <p><span className="font-medium">Desde:</span> {desde}</p>
-                  </div>
-                )}
-                {!ocupada && (
-                  <div className="flex items-center gap-1 text-xs text-green-700">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Disponible
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
+      {/* Componente en tiempo real — se actualiza sin recargar */}
+      <EstacionesRealtime
+        estacionesIniciales={estaciones ?? []}
+        sesionesInicialesMap={sesionesMap}
+      />
 
       <AdminCharts data={chartData} />
     </div>
