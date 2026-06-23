@@ -17,8 +17,9 @@ export default function FinCargaPage() {
   useEffect(() => {
     async function load() {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setLoadingData(false); return }
+      const cookieVal = document.cookie.split('; ').find(r => r.startsWith('celsia_session='))?.split('=')[1]
+      if (!cookieVal) { setLoadingData(false); return }
+      const user = JSON.parse(atob(cookieVal))
 
       const { data } = await supabase
         .from('sesiones_carga')

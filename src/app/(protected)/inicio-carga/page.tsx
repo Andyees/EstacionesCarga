@@ -24,8 +24,11 @@ export default function InicioCargaPage() {
   useEffect(() => {
     async function load() {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+
+      // Leer usuario desde cookie
+      const cookieVal = document.cookie.split('; ').find(r => r.startsWith('celsia_session='))?.split('=')[1]
+      if (!cookieVal) return
+      const user = JSON.parse(atob(cookieVal))
 
       const [{ data: p }, { data: e }] = await Promise.all([
         supabase.from('perfiles').select('*').eq('id', user.id).single(),
@@ -55,8 +58,9 @@ export default function InicioCargaPage() {
     setError('')
 
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setError('Sesión expirada.'); setLoading(false); return }
+    const cookieVal = document.cookie.split('; ').find(r => r.startsWith('celsia_session='))?.split('=')[1]
+    if (!cookieVal) { setError('Sesión expirada.'); setLoading(false); return }
+    const user = JSON.parse(atob(cookieVal))
 
     // Verificar no tenga sesión activa
     const { data: activa } = await supabase

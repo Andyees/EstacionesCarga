@@ -2,15 +2,13 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Zap, LogOut, LayoutDashboard } from 'lucide-react'
 
 export default function NavBar({ nombre, rol }: { nombre: string; rol: string }) {
   const router = useRouter()
 
   async function signOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    await fetch('/api/auth/logout', { method: 'POST' })
     router.push('/login')
     router.refresh()
   }
@@ -35,7 +33,7 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
           )}
           <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
             <span className="text-xs text-gray-500">{nombre}</span>
-            <button onClick={signOut} className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition">
+            <button onClick={signOut} title="Cerrar sesión" className="text-gray-400 hover:text-red-500 transition">
               <LogOut className="w-4 h-4" />
             </button>
           </div>

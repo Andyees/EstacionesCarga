@@ -1,16 +1,19 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
+import { decodeSession, COOKIE_NAME } from '@/lib/session'
 import Link from 'next/link'
-import { LayoutDashboard, Users, Zap, Activity } from 'lucide-react'
+import { LayoutDashboard, Users, Activity } from 'lucide-react'
 import NavBar from '@/components/NavBar'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get(COOKIE_NAME)
+  const user = sessionCookie ? decodeSession(sessionCookie.value) : null
 
-  const { data: perfil } = await supabase.from('perfiles').select('nombre_completo, rol').eq('id', user.id).single()
-  if (!perfil || perfil.rol !== 'admin') redirect('/inicio-carga')
+  if (!user) redirect('/login')
+  if (user.rol !== 'admin') redirect('/inicio-carga')
+
+  const perfil = user
 
   return (
     <div className="min-h-screen bg-gray-50">

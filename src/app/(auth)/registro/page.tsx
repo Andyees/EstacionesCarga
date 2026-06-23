@@ -1,17 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
-import { Zap, Mail } from 'lucide-react'
+import { Zap } from 'lucide-react'
 
 const TIPOS_CONECTOR = ['TIPO 1', 'TIPO 2', 'GBT'] as const
 
 export default function RegistroPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [enviado, setEnviado] = useState(false)
-  const [correoEnviado, setCorreoEnviado] = useState('')
   const [form, setForm] = useState({
     nombre_completo: '',
     empresa: '',
@@ -34,53 +33,22 @@ export default function RegistroPage() {
     setLoading(true)
     setError('')
 
-    // Guardar datos del perfil en localStorage para recuperarlos después del magic link
-    localStorage.setItem('perfil_pendiente', JSON.stringify({
-      nombre_completo: form.nombre_completo,
-      empresa: form.empresa,
-      correo: form.correo,
-      celular: form.celular,
-      placa: form.placa.toUpperCase(),
-      tipo_conector: form.tipo_conector,
-      marca_vehiculo: form.marca_vehiculo,
-    }))
-
-    const supabase = createClient()
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: form.correo,
-      options: {
-        emailRedirectTo: `${window.location.origin}/api/auth/callback`,
-        shouldCreateUser: true,
-      },
+    const res = await fetch('/api/auth/registro', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
     })
 
-    if (otpError) {
-      setError('Error al enviar el correo: ' + otpError.message)
+    const data = await res.json()
+
+    if (!res.ok) {
+      setError(data.error || 'Error al registrar.')
       setLoading(false)
       return
     }
 
-    setCorreoEnviado(form.correo)
-    setEnviado(true)
-    setLoading(false)
-  }
-
-  if (enviado) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center">
-          <div className="bg-green-100 rounded-full p-4 w-fit mx-auto mb-4">
-            <Mail className="w-10 h-10 text-green-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">¡Revisa tu correo!</h2>
-          <p className="text-gray-500 mb-4">
-            Te enviamos un enlace de acceso a <strong>{correoEnviado}</strong>.<br />
-            Haz clic en el enlace para completar tu registro e ingresar.
-          </p>
-          <p className="text-xs text-gray-400">Si no lo ves, revisa la carpeta de spam.</p>
-        </div>
-      </div>
-    )
+    router.push('/inicio-carga')
+    router.refresh()
   }
 
   return (
@@ -146,7 +114,7 @@ export default function RegistroPage() {
 
             <button type="submit" disabled={loading}
               className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-60">
-              {loading ? 'Enviando enlace...' : 'Registrarme y recibir enlace de acceso'}
+              {loading ? 'Registrando...' : 'Registrarme'}
             </button>
           </form>
 

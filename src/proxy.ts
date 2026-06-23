@@ -1,32 +1,13 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { decodeSession, COOKIE_NAME } from '@/lib/session'
 
-export async function proxy(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
+export function proxy(request: NextRequest) {
+  const sessionCookie = request.cookies.get(COOKIE_NAME)
+  const user = sessionCookie ? decodeSession(sessionCookie.value) : null
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return request.cookies.getAll() },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
-  const { data: { user } } = await supabase.auth.getUser()
-
-  const protectedPaths = ['/inicio-carga', '/fin-carga', '/admin']
-  const isProtected = protectedPaths.some(p => request.nextUrl.pathname.startsWith(p))
-  const isAuthPage = ['/login', '/registro'].some(p => request.nextUrl.pathname.startsWith(p))
-  const isBienvenida = request.nextUrl.pathname.startsWith('/bienvenida')
+  const { pathname } = request.nextUrl
+  const isProtected = ['/inicio-carga', '/fin-carga', '/admin'].some(p => pathname.startsWith(p))
+  const isAuthPage = ['/login', '/registro'].some(p => pathname.startsWith(p))
 
   if (isProtected && !user) {
     return NextResponse.redirect(new URL('/login', request.url))
@@ -36,26 +17,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/inicio-carga', request.url))
   }
 
-  if (isBienvenida) {
-    return supabaseResponse
+  if (pathname.startsWith('/admin') && user && user.rol !== 'admin') {
+    return NextResponse.redirect(new URL('/inicio-carga', request.url))
   }
 
-  // Verificar acceso admin
-  if (request.nextUrl.pathname.startsWith('/admin') && user) {
-    const { data: perfil } = await supabase
-      .from('perfiles')
-      .select('rol')
-      .eq('id', user.id)
-      .single()
-
-    if (!perfil || perfil.rol !== 'admin') {
-      return NextResponse.redirect(new URL('/inicio-carga', request.url))
-    }
-  }
-
-  return supabaseResponse
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon\\.ico|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }

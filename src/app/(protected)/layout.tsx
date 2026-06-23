@@ -1,22 +1,18 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
+import { decodeSession, COOKIE_NAME } from '@/lib/session'
 import NavBar from '@/components/NavBar'
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get(COOKIE_NAME)
+  const user = sessionCookie ? decodeSession(sessionCookie.value) : null
 
   if (!user) redirect('/login')
 
-  const { data: perfil } = await supabase
-    .from('perfiles')
-    .select('nombre_completo, rol')
-    .eq('id', user.id)
-    .single()
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavBar nombre={perfil?.nombre_completo || user.email || ''} rol={perfil?.rol || 'user'} />
+      <NavBar nombre={user.nombre_completo} rol={user.rol} />
       <main className="max-w-2xl mx-auto px-4 py-8">{children}</main>
     </div>
   )
