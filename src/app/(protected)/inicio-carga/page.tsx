@@ -10,6 +10,7 @@ export default function InicioCargaPage() {
   const [estaciones, setEstaciones] = useState<Estacion[]>([])
   const [correoSesion, setCorreoSesion] = useState('')
   const [placaSesion, setPlacaSesion] = useState('')
+  const [nombreSesion, setNombreSesion] = useState('')
   const [cargando, setCargando] = useState(true)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -25,6 +26,7 @@ export default function InicioCargaPage() {
       .then(data => {
         if (data.correo) setCorreoSesion(data.correo)
         if (data.placa) setPlacaSesion(data.placa)
+        if (data.nombre) setNombreSesion(data.nombre)
         if (data.estaciones) setEstaciones(data.estaciones)
         setCargando(false)
       })
@@ -117,6 +119,16 @@ export default function InicioCargaPage() {
           <p className="text-xs text-gray-500">Registra el inicio de tu sesión</p>
         </div>
       </div>
+
+      {nombreSesion && (
+        <div className="mb-5 bg-orange-50 border border-orange-100 rounded-2xl px-4 py-3 flex items-center gap-3">
+          <span className="text-2xl">👋</span>
+          <div>
+            <p className="text-sm font-semibold text-orange-700">¡Bienvenido, {nombreSesion.split(' ')[0]}!</p>
+            <p className="text-xs text-orange-500">Completa los datos para iniciar tu carga.</p>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

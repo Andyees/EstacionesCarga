@@ -16,13 +16,14 @@ export async function GET() {
   )
 
   const [{ data: perfil }, { data: estaciones }] = await Promise.all([
-    supabase.from('perfiles').select('placa, correo').eq('id', user.id).single(),
+    supabase.from('perfiles').select('placa, correo, nombre_completo').eq('id', user.id).single(),
     supabase.from('estaciones').select('*').order('nombre'),
   ])
 
   return NextResponse.json({
     correo: perfil?.correo || user.correo,
     placa: perfil?.placa || '',
+    nombre: perfil?.nombre_completo || user.nombre_completo || '',
     estaciones: estaciones || [],
   })
 }
