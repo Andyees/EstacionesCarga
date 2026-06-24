@@ -3,10 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { Resend } from 'resend'
 
 const LIMITE_HORAS = 4
-const AVISO_MINUTOS = 30 // avisar 30 min antes
+const AVISO_MINUTOS = 30
 
 export async function GET(request: Request) {
-  // Verificar que viene de Vercel Cron (seguridad básica)
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -16,22 +15,18 @@ export async function GET(request: Request) {
   const resend = new Resend(process.env.RESEND_API_KEY)
 
   const ahora = new Date()
-
-  // Buscar sesiones activas donde:
-  // hora_inicio + (LIMITE_HORAS * 60 - AVISO_MINUTOS) minutos <= ahora
-  // O sea, llevan 3h30m cargando y no se ha enviado aviso
   const minutosTranscurridos = LIMITE_HORAS * 60 - AVISO_MINUTOS // 210 min = 3h30m
   const corteInicio = new Date(ahora.getTime() - minutosTranscurridos * 60 * 1000)
-  // El límite máximo (4h) para no enviar avisos de sesiones ya vencidas
   const corteFin = new Date(ahora.getTime() - LIMITE_HORAS * 60 * 60 * 1000)
 
+  // Query sin joins — solo sesiones_carga
   const { data: sesiones, error } = await supabase
     .from('sesiones_carga')
-    .select('id, placa, hora_inicio, user_id, estaciones(nombre), perfiles(correo, nombre_completo)')
+    .select('id, placa, hora_inicio, user_id, estacion_id')
     .eq('estado', 'activa')
     .eq('aviso_enviado', false)
-    .lte('hora_inicio', corteInicio.toISOString())  // ya pasaron 3h30m
-    .gte('hora_inicio', corteFin.toISOString())      // pero no más de 4h (no vencidas aún)
+    .lte('hora_inicio', corteInicio.toISOString())
+    .gte('hora_inicio', corteFin.toISOString())
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -44,8 +39,19 @@ export async function GET(request: Request) {
   let enviados = 0
 
   for (const sesion of sesiones) {
-    const perfil = Array.isArray(sesion.perfiles) ? sesion.perfiles[0] : sesion.perfiles as any
-    const estacion = Array.isArray(sesion.estaciones) ? sesion.estaciones[0] : sesion.estaciones as any
+    // Buscar perfil por separado
+    const { data: perfil } = await supabase
+      .from('perfiles')
+      .select('correo, nombre_completo')
+      .eq('id', sesion.user_id)
+      .single()
+
+    // Buscar estación por separado
+    const { data: estacion } = await supabase
+      .from('estaciones')
+      .select('nombre')
+      .eq('id', sesion.estacion_id)
+      .single()
 
     if (!perfil?.correo) continue
 
@@ -55,7 +61,7 @@ export async function GET(request: Request) {
 
     try {
       await resend.emails.send({
-        from: 'Celsia EV Charging <noreply@resend.dev>',
+        from: 'Celsia EV Charging <onboarding@resend.dev>',
         to: perfil.correo,
         subject: '⚡ Tu tiempo de carga está por terminar — Celsia',
         html: `
@@ -83,7 +89,6 @@ export async function GET(request: Request) {
         `,
       })
 
-      // Marcar aviso como enviado
       await supabase
         .from('sesiones_carga')
         .update({ aviso_enviado: true })
@@ -91,7 +96,7 @@ export async function GET(request: Request) {
 
       enviados++
     } catch (emailError) {
-      console.error('Error enviando email a', perfil.correo, emailError)
+      console.error('Error enviando email:', emailError)
     }
   }
 
