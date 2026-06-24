@@ -19,7 +19,7 @@ export default async function AdminDashboard() {
     supabase.from('sesiones_carga').select('*', { count: 'exact', head: true }).eq('estado', 'activa'),
     supabase.from('sesiones_carga').select('created_at, tipo_conector, estado, hora_inicio, hora_fin').order('created_at', { ascending: false }).limit(200),
     supabase.from('estaciones').select('*').eq('activa', true).order('nombre'),
-    supabase.from('sesiones_carga').select('estacion_id, placa, hora_inicio, perfiles(nombre_completo)').eq('estado', 'activa'),
+    supabase.from('sesiones_carga').select('estacion_id, placa, hora_inicio, perfiles(nombre_completo, celular)').eq('estado', 'activa'),
   ])
 
   // Sesiones por día (últimos 7 días)
@@ -58,14 +58,15 @@ export default async function AdminDashboard() {
   }
 
   // Mapa inicial de estaciones ocupadas para el componente realtime
-  const sesionesMap: Record<string, { estacion_id: string; placa: string; nombre_completo: string; desde: string }> = {}
+  const sesionesMap: Record<string, { estacion_id: string; placa: string; nombre_completo: string; celular: string; desde: string }> = {}
   sesionesActivasDetalle?.forEach(s => {
     if (s.estacion_id) {
-      const perfil = (Array.isArray(s.perfiles) ? s.perfiles[0] : s.perfiles) as { nombre_completo: string } | null
+      const perfil = (Array.isArray(s.perfiles) ? s.perfiles[0] : s.perfiles) as { nombre_completo: string; celular: string } | null
       sesionesMap[s.estacion_id] = {
         estacion_id: s.estacion_id,
         placa: s.placa,
         nombre_completo: perfil?.nombre_completo ?? '—',
+        celular: perfil?.celular ?? '—',
         desde: s.hora_inicio,
       }
     }

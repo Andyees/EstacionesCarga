@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Zap, CheckCircle2, RefreshCw, X, Car, User, Clock, MapPin } from 'lucide-react'
+import { Zap, CheckCircle2, RefreshCw, X, Car, User, Clock, MapPin, Phone } from 'lucide-react'
 import type { Estacion } from '@/lib/supabase/types'
 
 const INTERVALO_SEG = 30
@@ -11,6 +11,7 @@ interface SesionActiva {
   estacion_id: string
   placa: string
   nombre_completo: string
+  celular: string
   desde: string
 }
 
@@ -135,6 +136,15 @@ function EstacionModal({ est, sesion, onClose }: { est: Estacion; sesion: Sesion
                       {new Date(sesion.desde).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
+                  <div className="bg-gray-50 rounded-xl p-3 col-span-2">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Phone className="w-4 h-4 text-orange-500" />
+                      <span className="text-xs text-gray-400 font-medium">Celular</span>
+                    </div>
+                    <a href={`tel:${sesion.celular}`} className="font-semibold text-orange-600 text-sm hover:underline">
+                      {sesion.celular}
+                    </a>
+                  </div>
                 </div>
               </div>
             </>
@@ -168,7 +178,7 @@ export default function EstacionesRealtime({ estacionesIniciales, sesionesInicia
     const supabase = createClient()
     const { data } = await supabase
       .from('sesiones_carga')
-      .select('estacion_id, placa, hora_inicio, perfiles(nombre_completo)')
+      .select('estacion_id, placa, hora_inicio, perfiles(nombre_completo, celular)')
       .eq('estado', 'activa')
     const mapa: Record<string, SesionActiva> = {}
     data?.forEach(s => {
@@ -178,6 +188,7 @@ export default function EstacionesRealtime({ estacionesIniciales, sesionesInicia
           estacion_id: s.estacion_id,
           placa: s.placa,
           nombre_completo: (perfil as any)?.nombre_completo ?? '—',
+          celular: (perfil as any)?.celular ?? '—',
           desde: s.hora_inicio,
         }
       }
