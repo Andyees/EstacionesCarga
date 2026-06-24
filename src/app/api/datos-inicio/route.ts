@@ -15,9 +15,10 @@ export async function GET() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
-  const [{ data: perfil }, { data: estaciones }] = await Promise.all([
+  const [{ data: perfil }, { data: estaciones }, { data: sesionActiva }] = await Promise.all([
     supabase.from('perfiles').select('placa, correo, nombre_completo').eq('id', user.id).single(),
     supabase.from('estaciones').select('*').order('nombre'),
+    supabase.from('sesiones_carga').select('*, estaciones(nombre, tipo_conector)').eq('user_id', user.id).eq('estado', 'activa').maybeSingle(),
   ])
 
   return NextResponse.json({
@@ -25,5 +26,6 @@ export async function GET() {
     placa: perfil?.placa || '',
     nombre: perfil?.nombre_completo || user.nombre_completo || '',
     estaciones: estaciones || [],
+    sesionActiva: sesionActiva || null,
   })
 }
