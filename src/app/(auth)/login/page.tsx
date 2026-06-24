@@ -80,7 +80,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           {/* Logo Celsia */}
           <div className="flex flex-col items-center mb-8">
-            <Image src="/Logo2.png" alt="Celsia" width={140} height={140} className="object-contain mb-3" />
+            <Image src="/Logo2.png" alt="Celsia" width={180} height={180} className="object-contain mb-4" />
             <h1 className="text-xl font-bold text-gray-900">Estaciones de Carga Eléctrica</h1>
             <p className="text-gray-500 text-sm mt-1 text-center">
               {esAdmin ? 'Acceso de administrador' : 'Ingresa con tu correo electrónico'}
@@ -103,7 +103,7 @@ export default function LoginPage() {
                   required
                   value={correo}
                   onChange={e => { setCorreo(e.target.value); setEsAdmin(false); setPassword('') }}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white placeholder:text-gray-400 text-gray-900"
                   placeholder="tu@correo.com"
                   autoComplete="email"
                   inputMode="email"
