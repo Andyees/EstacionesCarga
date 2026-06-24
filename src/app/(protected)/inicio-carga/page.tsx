@@ -1,9 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { BatteryCharging, CheckCircle } from 'lucide-react'
-// createClient used below for submit validation
 import type { Estacion } from '@/lib/supabase/types'
 
 export default function InicioCargaPage() {
@@ -41,53 +39,15 @@ export default function InicioCargaPage() {
     setLoading(true)
     setError('')
 
-    const cookieVal = document.cookie.split('; ').find(r => r.startsWith('celsia_session='))?.split('=')[1]
-    if (!cookieVal) { setError('Sesión expirada.'); setLoading(false); return }
-    const user = JSON.parse(atob(cookieVal))
-
-    const supabase = createClient()
-
-    const { data: activa } = await supabase
-      .from('sesiones_carga')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('estado', 'activa')
-      .single()
-
-    if (activa) {
-      setError('Ya tienes una sesión de carga activa. Finalízala antes de iniciar otra.')
-      setLoading(false)
-      return
-    }
-
-    const inicioDia = new Date()
-    inicioDia.setHours(0, 0, 0, 0)
-    const { data: yaUsoHoy } = await supabase
-      .from('sesiones_carga')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('estacion_id', estacionId)
-      .gte('hora_inicio', inicioDia.toISOString())
-      .limit(1)
-
-    if (yaUsoHoy && yaUsoHoy.length > 0) {
-      setError('Ya usaste esta estación hoy. Por favor elige otra estación disponible.')
-      setLoading(false)
-      return
-    }
-
-    const { error: insertError } = await supabase.from('sesiones_carga').insert({
-      user_id: user.id,
-      placa: placaSesion.toUpperCase(),
-      estacion_id: estacionId,
-      tipo_conector: estacionSeleccionada?.tipo_conector,
-      hora_inicio: new Date().toISOString(),
-      confirmacion_inicio: true,
-      estado: 'activa',
+    const res = await fetch('/api/iniciar-carga', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ estacion_id: estacionId, placa: placaSesion }),
     })
 
-    if (insertError) {
-      setError('Error al registrar el inicio de carga: ' + insertError.message)
+    const data = await res.json()
+    if (!res.ok) {
+      setError(data.error || 'Error al registrar.')
     } else {
       setSuccess(true)
     }
