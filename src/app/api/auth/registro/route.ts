@@ -21,6 +21,7 @@ export async function POST(request: Request) {
   const { data: perfil, error } = await supabase
     .from('perfiles')
     .insert({
+      id: crypto.randomUUID(),
       nombre_completo: body.nombre_completo,
       empresa: body.empresa,
       correo: body.correo.toLowerCase().trim(),
