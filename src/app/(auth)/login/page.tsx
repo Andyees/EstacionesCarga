@@ -80,8 +80,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           {/* Logo Celsia */}
           <div className="flex flex-col items-center mb-8">
-            <Image src="/Logo2.png" alt="Celsia" width={72} height={72} className="object-contain mb-3" />
-            <Image src="/celsia-logo.png" alt="Celsia" width={130} height={52} className="object-contain mb-3 rounded-lg" />
+            <Image src="/Logo2.png" alt="Celsia" width={80} height={80} className="object-contain mb-3" />
             <h1 className="text-xl font-bold text-gray-900">Estaciones de Carga Eléctrica</h1>
             <p className="text-gray-500 text-sm mt-1 text-center">
               {esAdmin ? 'Acceso de administrador' : 'Ingresa con tu correo electrónico'}
