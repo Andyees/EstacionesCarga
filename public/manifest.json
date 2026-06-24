@@ -5,7 +5,7 @@
   "start_url": "/inicio-carga",
   "display": "standalone",
   "background_color": "#f9fafb",
-  "theme_color": "#16a34a",
+  "theme_color": "#f97316",
   "orientation": "portrait",
   "icons": [
     {

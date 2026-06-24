@@ -19,7 +19,7 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
       <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className={`${rol === 'admin' ? 'bg-purple-600' : 'bg-green-600'} rounded-full p-1.5`}>
+            <div className={`${rol === 'admin' ? 'bg-purple-600' : 'bg-orange-500'} rounded-full p-1.5`}>
               <Zap className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -74,7 +74,7 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
 function NavItem({ href, label, active, color, children }: {
   href: string; label: string; active: boolean; color: 'green' | 'purple'; children: React.ReactNode
 }) {
-  const activeColor = color === 'purple' ? 'text-purple-600' : 'text-green-600'
+  const activeColor = color === 'purple' ? 'text-purple-600' : 'text-orange-500'
   return (
     <Link href={href} className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium transition-colors ${
       active ? activeColor : 'text-gray-400 hover:text-gray-600'

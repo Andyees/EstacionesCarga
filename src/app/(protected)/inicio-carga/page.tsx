@@ -134,11 +134,11 @@ export default function InicioCargaPage() {
   if (success) {
     return (
       <div className="bg-white rounded-2xl shadow p-8 text-center">
-        <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+        <CheckCircle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-gray-900 mb-2">¡Carga iniciada!</h2>
         <p className="text-gray-500 mb-6">Tu sesión de carga ha sido registrada correctamente.</p>
         <button onClick={() => { setSuccess(false); setForm(f => ({ ...f, estacion_id: '', hora_inicio: '', confirmacion: false })) }}
-          className="bg-green-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-green-700 transition w-full">
+          className="bg-orange-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition w-full">
           Nueva sesión
         </button>
       </div>
@@ -148,8 +148,8 @@ export default function InicioCargaPage() {
   return (
     <div className="bg-white rounded-2xl shadow p-5">
       <div className="flex items-center gap-3 mb-5">
-        <div className="bg-green-100 rounded-full p-2">
-          <BatteryCharging className="w-6 h-6 text-green-600" />
+        <div className="bg-orange-100 rounded-full p-2">
+          <BatteryCharging className="w-6 h-6 text-orange-500" />
         </div>
         <div>
           <h1 className="text-lg font-bold text-gray-900">Inicio de Carga</h1>
@@ -180,7 +180,7 @@ export default function InicioCargaPage() {
             {TIPOS_CONECTOR.map(tipo => (
               <label key={tipo} className={`flex items-center justify-center gap-1.5 cursor-pointer border-2 rounded-xl py-3 text-sm font-medium transition-colors ${
                 form.tipo_conector === tipo
-                  ? 'border-green-500 bg-green-50 text-green-700'
+                  ? 'border-orange-500 bg-orange-50 text-orange-600'
                   : 'border-gray-200 text-gray-600'
               }`}>
                 <input type="radio" name="tipo_conector" value={tipo} checked={form.tipo_conector === tipo}
@@ -196,10 +196,10 @@ export default function InicioCargaPage() {
           <p className="text-xs text-gray-400 mt-1">Si no indicas hora, se registra la hora actual.</p>
         </Field>
 
-        <div className="border border-green-200 bg-green-50 rounded-xl p-4">
+        <div className="border border-orange-200 bg-orange-50 rounded-xl p-4">
           <label className="flex items-start gap-3 cursor-pointer" onClick={() => set('confirmacion', !form.confirmacion)}>
             <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 mt-0.5 ${
-              form.confirmacion ? 'bg-green-600 border-green-600' : 'border-gray-300 bg-white'
+              form.confirmacion ? 'bg-orange-500 border-orange-500' : 'border-gray-300 bg-white'
             }`}>
               {form.confirmacion && <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
             </div>
@@ -213,7 +213,7 @@ export default function InicioCargaPage() {
         {error && <p className="text-red-500 text-sm bg-red-50 rounded-lg p-3">{error}</p>}
 
         <button type="submit" disabled={loading}
-          className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold py-4 rounded-xl transition disabled:opacity-60 text-base">
+          className="w-full bg-orange-500 hover:bg-orange-600 active:bg-orange-800 text-white font-semibold py-4 rounded-xl transition disabled:opacity-60 text-base">
           {loading ? 'Registrando...' : 'Registrar inicio de carga'}
         </button>
       </form>
@@ -221,7 +221,7 @@ export default function InicioCargaPage() {
   )
 }
 
-const inputCls = "w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
+const inputCls = "w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-orange-500"
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
