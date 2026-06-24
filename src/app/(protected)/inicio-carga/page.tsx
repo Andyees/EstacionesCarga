@@ -125,6 +125,16 @@ export default function InicioCargaPage() {
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Placa</label>
+          <input
+            value={placaSesion}
+            onChange={e => setPlacaSesion(e.target.value.toUpperCase())}
+            className={inputCls}
+            placeholder="ABC123"
+          />
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Estación *</label>
           {cargando ? (
             <p className="text-sm text-gray-400 py-3">Cargando estaciones...</p>
