@@ -16,7 +16,12 @@ export function proxy(request: NextRequest) {
   }
 
   if (isAuthPage && user) {
+    if (user.rol === 'admin') return NextResponse.redirect(new URL('/admin', request.url))
     return NextResponse.redirect(new URL('/inicio-carga', request.url))
+  }
+
+  if ((pathname.startsWith('/inicio-carga') || pathname.startsWith('/fin-carga')) && user && user.rol === 'admin') {
+    return NextResponse.redirect(new URL('/admin', request.url))
   }
 
   if (isAdminLoginPage && user && user.rol === 'admin') {
