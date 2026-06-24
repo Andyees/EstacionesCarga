@@ -10,6 +10,7 @@ const TIPOS_CONECTOR = ['TIPO 1', 'TIPO 2', 'GBT'] as const
 export default function InicioCargaPage() {
   const [estaciones, setEstaciones] = useState<Estacion[]>([])
   const [perfil, setPerfil] = useState<Perfil | null>(null)
+  const [correoSesion, setCorreoSesion] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
@@ -27,6 +28,7 @@ export default function InicioCargaPage() {
       const cookieVal = document.cookie.split('; ').find(r => r.startsWith('celsia_session='))?.split('=')[1]
       if (!cookieVal) return
       const user = JSON.parse(atob(cookieVal))
+      if (user.correo) setCorreoSesion(user.correo)
 
       const [{ data: p }, { data: e }] = await Promise.all([
         supabase.from('perfiles').select('*').eq('id', user.id).single(),
@@ -159,7 +161,7 @@ export default function InicioCargaPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Field label="Correo electrónico">
-          <input value={perfil?.correo || ''} disabled className={`${inputCls} bg-gray-50 text-gray-500`} />
+          <input value={perfil?.correo || correoSesion} disabled className={`${inputCls} bg-gray-50 text-gray-500`} />
         </Field>
 
         <Field label="Placa *">
@@ -203,7 +205,6 @@ export default function InicioCargaPage() {
             }`}>
               {form.confirmacion && <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
             </div>
-            <input type="checkbox" checked={form.confirmacion} onChange={e => set('confirmacion', e.target.checked)} className="sr-only" />
             <span className="text-sm text-gray-700">
               Confirmo que he conectado correctamente el vehículo a la estación seleccionada
             </span>

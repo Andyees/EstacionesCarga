@@ -104,13 +104,12 @@ export default function RegistroPage() {
               <p className="text-xs text-gray-600 mb-3">
                 Al registrarte aceptas las normas de uso de las estaciones de carga eléctrica de Celsia.
               </p>
-              <label className="flex items-center gap-3 cursor-pointer">
+              <label className="flex items-center gap-3 cursor-pointer" onClick={() => set('acepto_reglamento', !form.acepto_reglamento)}>
                 <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
                   form.acepto_reglamento ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
-                }`} onClick={() => set('acepto_reglamento', !form.acepto_reglamento)}>
+                }`}>
                   {form.acepto_reglamento && <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                 </div>
-                <input type="checkbox" checked={form.acepto_reglamento} onChange={e => set('acepto_reglamento', e.target.checked)} className="sr-only" />
                 <span className="text-sm text-gray-700 font-medium">Acepto el Reglamento de Uso</span>
               </label>
             </div>
