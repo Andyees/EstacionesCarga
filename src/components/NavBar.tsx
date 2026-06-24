@@ -53,11 +53,8 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
             </>
           ) : (
             <>
-              <NavItem href="/inicio-carga" label="Iniciar" active={pathname.startsWith('/inicio-carga')}>
+              <NavItem href="/inicio-carga" label="Mi carga" active={pathname.startsWith('/inicio-carga') || pathname.startsWith('/fin-carga')}>
                 <BatteryCharging className="w-5 h-5" />
-              </NavItem>
-              <NavItem href="/fin-carga" label="Finalizar" active={pathname.startsWith('/fin-carga')}>
-                <BatteryFull className="w-5 h-5" />
               </NavItem>
             </>
           )}

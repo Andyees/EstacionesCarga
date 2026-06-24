@@ -159,6 +159,22 @@ export default function InicioCargaPage() {
             </div>
           </div>
 
+          {/* Datos del vehículo */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="bg-gray-50 rounded-xl px-3 py-2">
+              <p className="text-xs text-gray-400">Placa</p>
+              <p className="font-semibold text-gray-800">{sesionActiva.placa}</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl px-3 py-2">
+              <p className="text-xs text-gray-400">Conector</p>
+              <p className="font-semibold text-gray-800">{estConector}</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl px-3 py-2 col-span-2">
+              <p className="text-xs text-gray-400">Estación</p>
+              <p className="font-semibold text-gray-800">{estNombre}</p>
+            </div>
+          </div>
+
           {/* Tiempo transcurrido */}
           <div className="text-center mb-4">
             <p className="text-xs text-gray-500 mb-1">Tiempo transcurrido</p>
