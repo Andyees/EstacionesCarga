@@ -1,0 +1,28 @@
+import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { decodeSession, COOKIE_NAME } from '@/lib/session'
+import { createClient } from '@supabase/supabase-js'
+
+export async function GET() {
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get(COOKIE_NAME)
+  const user = sessionCookie ? decodeSession(sessionCookie.value) : null
+
+  if (!user) return NextResponse.json({ error: 'No session' }, { status: 401 })
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  const [{ data: perfil }, { data: estaciones }] = await Promise.all([
+    supabase.from('perfiles').select('placa, correo').eq('id', user.id).single(),
+    supabase.from('estaciones').select('*').order('nombre'),
+  ])
+
+  return NextResponse.json({
+    correo: perfil?.correo || user.correo,
+    placa: perfil?.placa || '',
+    estaciones: estaciones || [],
+  })
+}

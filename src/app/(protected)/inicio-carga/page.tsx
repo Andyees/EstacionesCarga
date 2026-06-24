@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { BatteryCharging, CheckCircle } from 'lucide-react'
+// createClient used below for submit validation
 import type { Estacion } from '@/lib/supabase/types'
 
 export default function InicioCargaPage() {
   const [estaciones, setEstaciones] = useState<Estacion[]>([])
   const [correoSesion, setCorreoSesion] = useState('')
   const [placaSesion, setPlacaSesion] = useState('')
+  const [cargando, setCargando] = useState(true)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
@@ -18,22 +20,15 @@ export default function InicioCargaPage() {
   const estacionSeleccionada = estaciones.find(e => e.id === estacionId)
 
   useEffect(() => {
-    async function load() {
-      const cookieVal = document.cookie.split('; ').find(r => r.startsWith('celsia_session='))?.split('=')[1]
-      if (!cookieVal) return
-      const user = JSON.parse(atob(cookieVal))
-      if (user.correo) setCorreoSesion(user.correo)
-
-      const supabase = createClient()
-      const [{ data: p }, { data: e }] = await Promise.all([
-        supabase.from('perfiles').select('placa').eq('id', user.id).single(),
-        supabase.from('estaciones').select('*').order('nombre'),
-      ])
-
-      if (p) setPlacaSesion(p.placa)
-      if (e) setEstaciones(e)
-    }
-    load()
+    fetch('/api/datos-inicio')
+      .then(r => r.json())
+      .then(data => {
+        if (data.correo) setCorreoSesion(data.correo)
+        if (data.placa) setPlacaSesion(data.placa)
+        if (data.estaciones) setEstaciones(data.estaciones)
+        setCargando(false)
+      })
+      .catch(() => setCargando(false))
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -131,8 +126,10 @@ export default function InicioCargaPage() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Estación *</label>
-          {estaciones.length === 0 ? (
+          {cargando ? (
             <p className="text-sm text-gray-400 py-3">Cargando estaciones...</p>
+          ) : estaciones.length === 0 ? (
+            <p className="text-sm text-red-400 py-3">No hay estaciones disponibles.</p>
           ) : (
             <select
               required
