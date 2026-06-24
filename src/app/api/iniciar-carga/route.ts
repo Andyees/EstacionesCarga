@@ -27,6 +27,18 @@ export async function POST(request: Request) {
 
   if (activa) return NextResponse.json({ error: 'Ya tienes una sesión de carga activa. Finalízala antes de iniciar otra.' }, { status: 409 })
 
+  // Verificar que la estación no esté ocupada por otro usuario
+  const { data: estacionOcupada } = await supabase
+    .from('sesiones_carga')
+    .select('id')
+    .eq('estacion_id', estacion_id)
+    .eq('estado', 'activa')
+    .maybeSingle()
+
+  if (estacionOcupada) {
+    return NextResponse.json({ error: 'Esta estación ya está ocupada. Por favor selecciona otra.' }, { status: 409 })
+  }
+
   // Verificar uso de la misma estación hoy
   const inicioDia = new Date()
   inicioDia.setHours(0, 0, 0, 0)

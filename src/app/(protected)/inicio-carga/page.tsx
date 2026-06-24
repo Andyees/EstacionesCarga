@@ -31,7 +31,7 @@ function useTimer(horaInicio: string | null) {
 }
 
 export default function InicioCargaPage() {
-  const [estaciones, setEstaciones] = useState<Estacion[]>([])
+  const [estaciones, setEstaciones] = useState<(Estacion & { ocupada?: boolean })[]>([])
   const [correoSesion, setCorreoSesion] = useState('')
   const [placaSesion, setPlacaSesion] = useState('')
   const [nombreSesion, setNombreSesion] = useState('')
@@ -263,20 +263,47 @@ export default function InicioCargaPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Estación *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Estación *</label>
           {estaciones.length === 0 ? (
             <p className="text-sm text-red-400 py-3">No hay estaciones disponibles.</p>
           ) : (
-            <select required value={estacionId} onChange={e => setEstacionId(e.target.value)} className={inputCls}>
-              <option value="">Selecciona una estación</option>
-              {estaciones.map(est => (
-                <option key={est.id} value={est.id}>{est.nombre} — {est.ubicacion}</option>
-              ))}
-            </select>
+            <div className="grid grid-cols-1 gap-2">
+              {estaciones.map(est => {
+                const ocupada = est.ocupada
+                const seleccionada = estacionId === est.id
+                return (
+                  <button
+                    key={est.id}
+                    type="button"
+                    disabled={ocupada}
+                    onClick={() => !ocupada && setEstacionId(est.id)}
+                    className={`w-full text-left rounded-xl border-2 px-4 py-3 transition-all ${
+                      ocupada
+                        ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
+                        : seleccionada
+                        ? 'border-orange-500 bg-orange-50'
+                        : 'border-gray-200 bg-white hover:border-orange-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className={`font-semibold text-sm ${seleccionada ? 'text-orange-700' : 'text-gray-800'}`}>{est.nombre}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{est.ubicacion} · {est.tipo_conector}</p>
+                      </div>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                        ocupada ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'
+                      }`}>
+                        {ocupada ? 'OCUPADA' : 'LIBRE'}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
           )}
         </div>
 
-        {estacionSeleccionada && (
+        {estacionSeleccionada && !estacionSeleccionada.ocupada && (
           <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-orange-700">
             Conector: <span className="font-semibold">{estacionSeleccionada.tipo_conector}</span>
           </div>
