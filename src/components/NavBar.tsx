@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { Zap, LogOut, LayoutDashboard, BatteryCharging, BatteryFull, Shield, ClipboardList, Users } from 'lucide-react'
+import { LogOut, LayoutDashboard, BatteryCharging, BatteryFull, Shield, ClipboardList, Users } from 'lucide-react'
 
 export default function NavBar({ nombre, rol }: { nombre: string; rol: string }) {
   const router = useRouter()
@@ -17,14 +18,12 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
   return (
     <>
       <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className={`${rol === 'admin' ? 'bg-purple-600' : 'bg-orange-500'} rounded-full p-1.5`}>
-              <Zap className="w-4 h-4 text-white" />
-            </div>
+            <Image src="/Logo2.png" alt="Celsia" width={32} height={32} className="object-contain" />
             <div>
               <span className="font-bold text-gray-900 text-sm">Celsia EV Charging</span>
-              {rol === 'admin' && <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-medium">Admin</span>}
+              {rol === 'admin' && <span className="ml-2 text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-medium">Admin</span>}
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -40,25 +39,25 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
         <div className="max-w-2xl mx-auto flex">
           {rol === 'admin' ? (
             <>
-              <NavItem href="/admin" label="Estaciones" active={pathname === '/admin'} color="purple">
+              <NavItem href="/admin" label="Estaciones" active={pathname === '/admin'}>
                 <LayoutDashboard className="w-5 h-5" />
               </NavItem>
-              <NavItem href="/admin/sesiones" label="Sesiones" active={pathname.startsWith('/admin/sesiones')} color="purple">
+              <NavItem href="/admin/sesiones" label="Sesiones" active={pathname.startsWith('/admin/sesiones')}>
                 <ClipboardList className="w-5 h-5" />
               </NavItem>
-              <NavItem href="/admin/usuarios" label="Usuarios" active={pathname.startsWith('/admin/usuarios')} color="purple">
+              <NavItem href="/admin/usuarios" label="Usuarios" active={pathname.startsWith('/admin/usuarios')}>
                 <Users className="w-5 h-5" />
               </NavItem>
-              <NavItem href="/admin/admins" label="Admins" active={pathname.startsWith('/admin/admins')} color="purple">
+              <NavItem href="/admin/admins" label="Admins" active={pathname.startsWith('/admin/admins')}>
                 <Shield className="w-5 h-5" />
               </NavItem>
             </>
           ) : (
             <>
-              <NavItem href="/inicio-carga" label="Iniciar" active={pathname.startsWith('/inicio-carga')} color="green">
+              <NavItem href="/inicio-carga" label="Iniciar" active={pathname.startsWith('/inicio-carga')}>
                 <BatteryCharging className="w-5 h-5" />
               </NavItem>
-              <NavItem href="/fin-carga" label="Finalizar" active={pathname.startsWith('/fin-carga')} color="green">
+              <NavItem href="/fin-carga" label="Finalizar" active={pathname.startsWith('/fin-carga')}>
                 <BatteryFull className="w-5 h-5" />
               </NavItem>
             </>
@@ -71,13 +70,12 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
   )
 }
 
-function NavItem({ href, label, active, color, children }: {
-  href: string; label: string; active: boolean; color: 'green' | 'purple'; children: React.ReactNode
+function NavItem({ href, label, active, children }: {
+  href: string; label: string; active: boolean; children: React.ReactNode
 }) {
-  const activeColor = color === 'purple' ? 'text-purple-600' : 'text-orange-500'
   return (
     <Link href={href} className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium transition-colors ${
-      active ? activeColor : 'text-gray-400 hover:text-gray-600'
+      active ? 'text-orange-500' : 'text-gray-400 hover:text-gray-600'
     }`}>
       {children}
       {label}
