@@ -119,8 +119,8 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="w-full border border-orange-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="••••••••"
+                    className="w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white placeholder:text-gray-400"
+                    placeholder="Contraseña"
                     autoComplete="current-password"
                     autoFocus
                   />
