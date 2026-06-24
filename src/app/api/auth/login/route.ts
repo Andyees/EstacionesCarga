@@ -18,6 +18,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'no_registrado' }, { status: 404 })
   }
 
+  if (perfil.rol === 'admin') {
+    return NextResponse.json({ error: 'es_admin' }, { status: 403 })
+  }
+
   const session = encodeSession({
     id: perfil.id,
     correo: perfil.correo,

@@ -28,6 +28,12 @@ export default function LoginPage() {
       return
     }
 
+    if (res.status === 403) {
+      setError('Este correo es de administrador. Usa el acceso de admin.')
+      setLoading(false)
+      return
+    }
+
     if (!res.ok) {
       setError('Error al ingresar. Intenta de nuevo.')
       setLoading(false)
