@@ -11,8 +11,7 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
 
   async function signOut() {
     await fetch('/api/auth/logout', { method: 'POST' })
-    router.push(rol === 'admin' ? '/admin/login' : '/login')
-    router.refresh()
+    window.location.href = '/login'
   }
 
   return (
