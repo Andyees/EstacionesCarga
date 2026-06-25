@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Zap, CheckCircle2, RefreshCw, X, Car, User, Clock, MapPin, Phone } from 'lucide-react'
+import { Zap, CheckCircle2, RefreshCw, X, Car, User, Clock, MapPin, Phone, Wrench } from 'lucide-react'
 import type { Estacion } from '@/lib/supabase/types'
 
 const INTERVALO_SEG = 30
@@ -169,19 +169,21 @@ function EstacionModal({ est, sesion, onClose }: { est: Estacion; sesion: Sesion
 }
 
 export default function EstacionesRealtime({ estacionesIniciales, sesionesInicialesMap }: Props) {
+  const [estaciones, setEstaciones] = useState<Estacion[]>(estacionesIniciales)
   const [ocupadas, setOcupadas] = useState<Record<string, SesionActiva>>(sesionesInicialesMap)
   const [ultimaActualizacion, setUltimaActualizacion] = useState(new Date())
   const [countdown, setCountdown] = useState(INTERVALO_SEG)
   const [seleccionada, setSeleccionada] = useState<Estacion | null>(null)
+  const [toggling, setToggling] = useState<string | null>(null)
 
   const recargar = useCallback(async () => {
     const supabase = createClient()
-    const { data } = await supabase
-      .from('sesiones_carga')
-      .select('estacion_id, placa, hora_inicio, perfiles(nombre_completo, celular)')
-      .eq('estado', 'activa')
+    const [{ data: sesData }, { data: estData }] = await Promise.all([
+      supabase.from('sesiones_carga').select('estacion_id, placa, hora_inicio, perfiles(nombre_completo, celular)').eq('estado', 'activa'),
+      supabase.from('estaciones').select('*').order('nombre'),
+    ])
     const mapa: Record<string, SesionActiva> = {}
-    data?.forEach(s => {
+    sesData?.forEach(s => {
       if (s.estacion_id) {
         const perfil = Array.isArray(s.perfiles) ? s.perfiles[0] : s.perfiles
         mapa[s.estacion_id] = {
@@ -194,6 +196,7 @@ export default function EstacionesRealtime({ estacionesIniciales, sesionesInicia
       }
     })
     setOcupadas(mapa)
+    if (estData) setEstaciones(estData as Estacion[])
     setUltimaActualizacion(new Date())
     setCountdown(INTERVALO_SEG)
   }, [])
@@ -204,7 +207,18 @@ export default function EstacionesRealtime({ estacionesIniciales, sesionesInicia
     return () => { clearInterval(interval); clearInterval(tick) }
   }, [recargar])
 
-  const libres = estacionesIniciales.filter(e => !ocupadas[e.id]).length
+  async function toggleMantenimiento(est: Estacion) {
+    setToggling(est.id)
+    await fetch('/api/admin/estacion-estado', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ estacion_id: est.id, activa: !est.activa }),
+    })
+    setEstaciones(prev => prev.map(e => e.id === est.id ? { ...e, activa: !e.activa } : e))
+    setToggling(null)
+  }
+
+  const libres = estaciones.filter(e => e.activa && !ocupadas[e.id]).length
 
   return (
     <>
@@ -221,7 +235,7 @@ export default function EstacionesRealtime({ estacionesIniciales, sesionesInicia
           <h2 className="text-sm font-semibold text-gray-700">Estado de estaciones</h2>
           <div className="flex items-center gap-3">
             <span className="text-xs text-gray-400">
-              {libres}/{estacionesIniciales.length} libres · actualizado {ultimaActualizacion.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              {libres}/{estaciones.length} libres · {ultimaActualizacion.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </span>
             <button onClick={recargar} className="flex items-center gap-1 text-xs text-green-600 hover:text-green-800 transition">
               <RefreshCw className="w-3.5 h-3.5" />{countdown}s
@@ -230,42 +244,66 @@ export default function EstacionesRealtime({ estacionesIniciales, sesionesInicia
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {estacionesIniciales.map(est => {
+          {estaciones.map(est => {
             const sesion = ocupadas[est.id]
             const ocupada = !!sesion
+            const mantenimiento = !est.activa
             return (
-              <button
+              <div
                 key={est.id}
-                onClick={() => setSeleccionada(est)}
-                className={`rounded-xl border-2 p-4 flex flex-col gap-2 transition-all duration-300 text-left w-full hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
-                  ocupada ? 'border-red-300 bg-red-50 hover:border-red-400' : 'border-green-300 bg-green-50 hover:border-green-400'
+                className={`rounded-xl border-2 p-4 flex flex-col gap-2 transition-all duration-300 ${
+                  mantenimiento ? 'border-amber-300 bg-amber-50' :
+                  ocupada ? 'border-red-300 bg-red-50' : 'border-green-300 bg-green-50'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Zap className={`w-4 h-4 ${ocupada ? 'text-red-500' : 'text-green-600'}`} />
-                    <span className="font-semibold text-sm text-gray-900">{est.nombre}</span>
+                {/* Header clickable para ver detalle */}
+                <button onClick={() => setSeleccionada(est)} className="text-left w-full">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {mantenimiento
+                        ? <Wrench className="w-4 h-4 text-amber-500" />
+                        : <Zap className={`w-4 h-4 ${ocupada ? 'text-red-500' : 'text-green-600'}`} />
+                      }
+                      <span className="font-semibold text-sm text-gray-900">{est.nombre}</span>
+                    </div>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                      mantenimiento ? 'bg-amber-100 text-amber-700' :
+                      ocupada ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                    }`}>
+                      {mantenimiento ? 'MANT.' : ocupada ? 'OCUPADA' : 'LIBRE'}
+                    </span>
                   </div>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                    ocupada ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                  }`}>
-                    {ocupada ? 'OCUPADA' : 'LIBRE'}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500">{est.ubicacion} · {est.tipo_conector}</p>
-                {ocupada && sesion ? (
-                  <div className="text-xs text-red-700 space-y-0.5">
-                    <p className="font-medium truncate">{sesion.nombre_completo}</p>
-                    <p className="font-mono">{sesion.placa}</p>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1 text-xs text-green-700">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Disponible
-                  </div>
-                )}
-                <p className="text-xs text-gray-400 text-right">Toca para ver detalle →</p>
-              </button>
+                  <p className="text-xs text-gray-500 mt-1">{est.ubicacion} · {est.tipo_conector}</p>
+                  {!mantenimiento && ocupada && sesion && (
+                    <div className="text-xs text-red-700 space-y-0.5 mt-1">
+                      <p className="font-medium truncate">{sesion.nombre_completo}</p>
+                      <p className="font-mono">{sesion.placa}</p>
+                    </div>
+                  )}
+                  {!mantenimiento && !ocupada && (
+                    <div className="flex items-center gap-1 text-xs text-green-700 mt-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />Disponible
+                    </div>
+                  )}
+                  {mantenimiento && (
+                    <p className="text-xs text-amber-600 mt-1">No disponible para usuarios</p>
+                  )}
+                </button>
+
+                {/* Toggle mantenimiento */}
+                <button
+                  onClick={() => toggleMantenimiento(est)}
+                  disabled={toggling === est.id}
+                  className={`w-full mt-1 text-xs font-medium py-1.5 rounded-lg border transition flex items-center justify-center gap-1.5 ${
+                    mantenimiento
+                      ? 'border-green-300 text-green-700 bg-green-50 hover:bg-green-100'
+                      : 'border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100'
+                  }`}
+                >
+                  <Wrench className="w-3 h-3" />
+                  {toggling === est.id ? 'Actualizando...' : mantenimiento ? 'Activar estación' : 'Poner en mantenimiento'}
+                </button>
+              </div>
             )
           })}
         </div>

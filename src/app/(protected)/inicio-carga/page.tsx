@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { BatteryCharging, CheckCircle, Clock, Zap } from 'lucide-react'
-import type { Estacion, SesionCarga } from '@/lib/supabase/types'
+import type { SesionCarga } from '@/lib/supabase/types'
 
 const LIMITE_HORAS = 4
 
@@ -46,7 +46,6 @@ export default function InicioCargaPage() {
   const [confirmacion, setConfirmacion] = useState(false)
   const [confirmFin, setConfirmFin] = useState(false)
 
-  const estacionSeleccionada = estaciones.find(e => e.id === estacionId)
   const timer = useTimer(sesionActiva?.hora_inicio || null)
 
   const cargarDatos = useCallback(() => {

@@ -24,10 +24,11 @@ export async function GET() {
 
   const ocupadasIds = new Set((sesionesActivas || []).map((s: any) => s.estacion_id))
 
-  // Agrupar por tipo de conector
+  // Agrupar por tipo de conector (solo estaciones activas)
   const grupos: Record<string, { tipo: string; total: number; libres: number }> = {}
   for (const e of (estaciones || [])) {
     if (!grupos[e.tipo_conector]) grupos[e.tipo_conector] = { tipo: e.tipo_conector, total: 0, libres: 0 }
+    if (!e.activa) continue  // en mantenimiento, no cuenta como disponible
     grupos[e.tipo_conector].total++
     if (!ocupadasIds.has(e.id)) grupos[e.tipo_conector].libres++
   }
