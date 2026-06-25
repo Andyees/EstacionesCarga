@@ -31,7 +31,7 @@ function useTimer(horaInicio: string | null) {
 }
 
 export default function InicioCargaPage() {
-  const [estaciones, setEstaciones] = useState<(Estacion & { ocupada?: boolean })[]>([])
+  const [tiposConector, setTiposConector] = useState<{ tipo: string; total: number; libres: number }[]>([])
   const [correoSesion, setCorreoSesion] = useState('')
   const [placaSesion, setPlacaSesion] = useState('')
   const [nombreSesion, setNombreSesion] = useState('')
@@ -56,7 +56,7 @@ export default function InicioCargaPage() {
         if (data.correo) setCorreoSesion(data.correo)
         if (data.placa) setPlacaSesion(data.placa)
         if (data.nombre) setNombreSesion(data.nombre)
-        if (data.estaciones) setEstaciones(data.estaciones)
+        if (data.tiposConector) setTiposConector(data.tiposConector)
         setSesionActiva(data.sesionActiva || null)
         setCargando(false)
       })
@@ -74,7 +74,7 @@ export default function InicioCargaPage() {
     const res = await fetch('/api/iniciar-carga', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ estacion_id: estacionId, placa: placaSesion }),
+      body: JSON.stringify({ tipo_conector: estacionId, placa: placaSesion }),
     })
     const data = await res.json()
     if (!res.ok) {
@@ -263,51 +263,36 @@ export default function InicioCargaPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Estación *</label>
-          {estaciones.length === 0 ? (
-            <p className="text-sm text-red-400 py-3">No hay estaciones disponibles.</p>
-          ) : (
-            <div className="grid grid-cols-1 gap-2">
-              {estaciones.map(est => {
-                const ocupada = est.ocupada
-                const seleccionada = estacionId === est.id
-                return (
-                  <button
-                    key={est.id}
-                    type="button"
-                    disabled={ocupada}
-                    onClick={() => !ocupada && setEstacionId(est.id)}
-                    className={`w-full text-left rounded-xl border-2 px-4 py-3 transition-all ${
-                      ocupada
-                        ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
-                        : seleccionada
-                        ? 'border-orange-500 bg-orange-50'
-                        : 'border-gray-200 bg-white hover:border-orange-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className={`font-semibold text-sm ${seleccionada ? 'text-orange-700' : 'text-gray-800'}`}>{est.nombre}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">{est.ubicacion} · {est.tipo_conector}</p>
-                      </div>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                        ocupada ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'
-                      }`}>
-                        {ocupada ? 'OCUPADA' : 'LIBRE'}
-                      </span>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          )}
-        </div>
-
-        {estacionSeleccionada && !estacionSeleccionada.ocupada && (
-          <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-orange-700">
-            Conector: <span className="font-semibold">{estacionSeleccionada.tipo_conector}</span>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de conector *</label>
+          <div className="grid grid-cols-3 gap-2">
+            {tiposConector.map(t => {
+              const sin = t.libres === 0
+              const sel = estacionId === t.tipo
+              return (
+                <button
+                  key={t.tipo}
+                  type="button"
+                  disabled={sin}
+                  onClick={() => !sin && setEstacionId(t.tipo)}
+                  className={`rounded-xl border-2 py-3 px-2 flex flex-col items-center gap-1 transition-all ${
+                    sin
+                      ? 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
+                      : sel
+                      ? 'border-orange-500 bg-orange-50'
+                      : 'border-gray-200 bg-white hover:border-orange-300'
+                  }`}
+                >
+                  <span className={`text-sm font-bold ${sel ? 'text-orange-700' : 'text-gray-800'}`}>{t.tipo}</span>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    sin ? 'bg-red-100 text-red-600' : t.libres === 1 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                  }`}>
+                    {t.libres}/{t.total} libre{t.libres !== 1 ? 's' : ''}
+                  </span>
+                </button>
+              )
+            })}
           </div>
-        )}
+        </div>
 
         <div className="border border-orange-200 bg-orange-50 rounded-xl p-4">
           <label className="flex items-start gap-3 cursor-pointer" onClick={() => setConfirmacion(c => !c)}>

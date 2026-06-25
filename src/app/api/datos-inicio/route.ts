@@ -22,13 +22,21 @@ export async function GET() {
     supabase.from('sesiones_carga').select('estacion_id').eq('estado', 'activa'),
   ])
 
-  const estacionesOcupadas = new Set((sesionesActivas || []).map((s: any) => s.estacion_id))
+  const ocupadasIds = new Set((sesionesActivas || []).map((s: any) => s.estacion_id))
+
+  // Agrupar por tipo de conector
+  const grupos: Record<string, { tipo: string; total: number; libres: number }> = {}
+  for (const e of (estaciones || [])) {
+    if (!grupos[e.tipo_conector]) grupos[e.tipo_conector] = { tipo: e.tipo_conector, total: 0, libres: 0 }
+    grupos[e.tipo_conector].total++
+    if (!ocupadasIds.has(e.id)) grupos[e.tipo_conector].libres++
+  }
 
   return NextResponse.json({
     correo: perfil?.correo || user.correo,
     placa: perfil?.placa || '',
     nombre: perfil?.nombre_completo || user.nombre_completo || '',
-    estaciones: (estaciones || []).map((e: any) => ({ ...e, ocupada: estacionesOcupadas.has(e.id) })),
+    tiposConector: Object.values(grupos),
     sesionActiva: sesionActiva || null,
   })
 }
