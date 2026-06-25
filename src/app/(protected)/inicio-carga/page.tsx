@@ -284,7 +284,7 @@ export default function InicioCargaPage() {
                   <span className="text-xs text-gray-400 font-medium">Estación</span>
                   <span className={`text-sm font-bold ${sel ? 'text-orange-700' : 'text-gray-800'}`}>{t.tipo}</span>
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                    sin ? 'bg-red-100 text-red-600' : t.libres === 1 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                    sin ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'
                   }`}>
                     {t.libres}/{t.total} libre{t.libres !== 1 ? 's' : ''}
                   </span>
