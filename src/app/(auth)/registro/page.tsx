@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Zap } from 'lucide-react'
+import { Zap, X, CheckCircle, Clock, Shield, Users, AlertTriangle, XCircle, BarChart3, Car, Bell } from 'lucide-react'
 
 const TIPOS_CONECTOR = ['TIPO 1', 'TIPO 2', 'GBT'] as const
 
@@ -11,6 +11,27 @@ export default function RegistroPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [modalOpen, setModalOpen] = useState(false)
+  const [scrolledToBottom, setScrolledToBottom] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  function handleScroll() {
+    const el = scrollRef.current
+    if (!el) return
+    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 40
+    if (atBottom) setScrolledToBottom(true)
+  }
+
+  function abrirReglamento() {
+    setModalOpen(true)
+    setScrolledToBottom(false)
+    setTimeout(() => scrollRef.current?.scrollTo(0, 0), 50)
+  }
+
+  function aceptarReglamento() {
+    set('acepto_reglamento', true)
+    setModalOpen(false)
+  }
   const [form, setForm] = useState({
     nombre_completo: '',
     empresa: '',
@@ -100,23 +121,121 @@ export default function RegistroPage() {
               </div>
             </Field>
 
-            <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
-              <p className="text-xs text-gray-600 mb-3">
-                Al registrarte aceptas las{' '}
-                <a href="/reglamento" target="_blank" className="text-orange-500 font-semibold underline">
-                  normas de uso
-                </a>
-                {' '}de las estaciones de carga eléctrica de Celsia.
-              </p>
-              <label className="flex items-center gap-3 cursor-pointer" onClick={() => set('acepto_reglamento', !form.acepto_reglamento)}>
-                <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
-                  form.acepto_reglamento ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
-                }`}>
-                  {form.acepto_reglamento && <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+            {/* Reglamento */}
+            {!form.acepto_reglamento ? (
+              <button
+                type="button"
+                onClick={abrirReglamento}
+                className="w-full border-2 border-orange-300 bg-orange-50 rounded-xl p-4 text-left hover:border-orange-400 transition"
+              >
+                <p className="text-sm font-semibold text-orange-700 mb-0.5">Leer y aceptar el Reglamento de Uso</p>
+                <p className="text-xs text-orange-500">Debes leer el reglamento antes de registrarte. Toca aquí para abrirlo.</p>
+              </button>
+            ) : (
+              <div className="border-2 border-green-400 bg-green-50 rounded-xl p-4 flex items-center gap-3">
+                <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-green-700">Reglamento aceptado</p>
+                  <button type="button" onClick={abrirReglamento} className="text-xs text-green-600 underline mt-0.5">Ver de nuevo</button>
                 </div>
-                <span className="text-sm text-gray-700 font-medium">Acepto el Reglamento de Uso</span>
-              </label>
-            </div>
+              </div>
+            )}
+
+            {/* Modal reglamento */}
+            {modalOpen && (
+              <div className="fixed inset-0 z-50 flex items-end justify-center">
+                <div className="absolute inset-0 bg-black/50" onClick={() => setModalOpen(false)} />
+                <div className="relative bg-white w-full max-w-lg rounded-t-3xl shadow-2xl flex flex-col" style={{ maxHeight: '90vh' }}>
+                  <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 flex-shrink-0">
+                    <h2 className="font-bold text-gray-900 text-base">Reglamento de Uso</h2>
+                    <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div ref={scrollRef} onScroll={handleScroll} className="overflow-y-auto px-5 py-4 space-y-4 flex-1">
+                    {/* Pasos */}
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 uppercase mb-3">¿Cómo funciona?</p>
+                      <div className="space-y-2.5">
+                        {[
+                          { n: '1', t: 'Regístrate', d: 'Crea tu cuenta en el aplicativo.' },
+                          { n: '2', t: 'Consulta', d: 'Visualiza en tiempo real la disponibilidad de las estaciones.' },
+                          { n: '3', t: 'Inicia tu carga', d: 'Conecta tu vehículo y registra el inicio en la app.' },
+                          { n: '4', t: 'Finaliza tu carga', d: 'Al terminar, finaliza la sesión, desconecta y retira tu vehículo.' },
+                          { n: '5', t: 'Libera el espacio', d: 'Permite que otros puedan usar la estación.' },
+                        ].map(p => (
+                          <div key={p.n} className="flex items-start gap-2.5">
+                            <span className="bg-green-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">{p.n}</span>
+                            <div><p className="text-sm font-semibold text-gray-800">{p.t}</p><p className="text-xs text-gray-500">{p.d}</p></div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Normas */}
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 uppercase mb-3">Normas de Uso</p>
+                      <div className="space-y-3">
+                        {[
+                          { icon: <Clock className="w-4 h-4 text-green-600" />, t: 'Tiempo máximo: 4 horas por vehículo.', d: 'Salvo condiciones especiales definidas por CELSIA.' },
+                          { icon: <Car className="w-4 h-4 text-green-600" />, t: 'Uso exclusivo para vehículos cargando.', d: 'Los espacios son solo para vehículos activamente cargando.' },
+                          { icon: <Users className="w-4 h-4 text-green-600" />, t: 'Uso compartido en alta demanda.', d: 'Realiza cargas parciales para promover la rotación.' },
+                          { icon: <Shield className="w-4 h-4 text-green-600" />, t: 'Manipula cables con cuidado.', d: 'Reporta inmediatamente cualquier falla o daño.' },
+                          { icon: <AlertTriangle className="w-4 h-4 text-green-600" />, t: 'Reporta novedades.', d: 'Informa anomalías o condiciones inseguras.' },
+                          { icon: <Bell className="w-4 h-4 text-green-600" />, t: 'Estaciona correctamente.', d: 'Dentro de la celda para que otros tengan espacio.' },
+                        ].map((n, i) => (
+                          <div key={i} className="flex items-start gap-2.5 pb-3 border-b border-gray-50 last:border-0">
+                            <div className="bg-green-50 rounded-full p-1.5 flex-shrink-0">{n.icon}</div>
+                            <div><p className="text-sm font-semibold text-gray-800">{n.t}</p><p className="text-xs text-gray-500">{n.d}</p></div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Prohibido */}
+                    <div>
+                      <p className="text-xs font-bold text-red-500 uppercase mb-3">No está permitido</p>
+                      <div className="space-y-2">
+                        {[
+                          'Usar la estación sin registrarse en el aplicativo.',
+                          'Dejar el vehículo conectado una vez finalizada la carga.',
+                          'Reservar espacios sin hacer uso del servicio.',
+                          'Bloquear el acceso a otras estaciones.',
+                          'Manipular equipos sin autorización.',
+                        ].map((item, i) => (
+                          <div key={i} className="flex items-start gap-2">
+                            <XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                            <p className="text-xs text-gray-700">{item}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-green-700 rounded-xl p-4 text-center">
+                      <p className="text-white font-bold text-sm">¡Buen uso, mejor energía!</p>
+                      <p className="text-green-100 text-xs mt-1">Tu uso responsable mejora el servicio para todos.</p>
+                    </div>
+
+                    <div className="h-2" />
+                  </div>
+
+                  <div className="px-5 py-4 border-t border-gray-100 flex-shrink-0">
+                    {!scrolledToBottom && (
+                      <p className="text-xs text-gray-400 text-center mb-3">↓ Desplázate hacia abajo para leer todo el reglamento</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={aceptarReglamento}
+                      disabled={!scrolledToBottom}
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3.5 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed text-base"
+                    >
+                      He leído y acepto el Reglamento
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
