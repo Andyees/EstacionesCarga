@@ -102,7 +102,11 @@ export default function RegistroPage() {
 
             <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
               <p className="text-xs text-gray-600 mb-3">
-                Al registrarte aceptas las normas de uso de las estaciones de carga eléctrica de Celsia.
+                Al registrarte aceptas las{' '}
+                <a href="/reglamento" target="_blank" className="text-orange-500 font-semibold underline">
+                  normas de uso
+                </a>
+                {' '}de las estaciones de carga eléctrica de Celsia.
               </p>
               <label className="flex items-center gap-3 cursor-pointer" onClick={() => set('acepto_reglamento', !form.acepto_reglamento)}>
                 <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 ${

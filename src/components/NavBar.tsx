@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { LogOut, LayoutDashboard, BatteryCharging, BatteryFull, Shield, ClipboardList, Users } from 'lucide-react'
+import { LogOut, LayoutDashboard, BatteryCharging, BatteryFull, Shield, ClipboardList, Users, FileText } from 'lucide-react'
 
 export default function NavBar({ nombre, rol }: { nombre: string; rol: string }) {
   const router = useRouter()
@@ -55,6 +55,9 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
             <>
               <NavItem href="/inicio-carga" label="Mi carga" active={pathname.startsWith('/inicio-carga') || pathname.startsWith('/fin-carga')}>
                 <BatteryCharging className="w-5 h-5" />
+              </NavItem>
+              <NavItem href="/reglamento" label="Reglamento" active={pathname.startsWith('/reglamento')}>
+                <FileText className="w-5 h-5" />
               </NavItem>
             </>
           )}

@@ -7,8 +7,11 @@ export function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
   const isAdminLoginPage = pathname === '/admin/login'
+  const isPublic = pathname === '/reglamento'
   const isProtected = ['/inicio-carga', '/fin-carga', '/admin'].some(p => pathname.startsWith(p)) && !isAdminLoginPage
   const isAuthPage = ['/login', '/registro'].some(p => pathname.startsWith(p))
+
+  if (isPublic) return NextResponse.next()
 
   if (isProtected && !user) {
     if (pathname.startsWith('/admin')) return NextResponse.redirect(new URL('/admin/login', request.url))
