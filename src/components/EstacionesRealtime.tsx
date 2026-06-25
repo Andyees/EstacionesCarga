@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Zap, CheckCircle2, RefreshCw, X, Car, User, Clock, MapPin, Phone, Wrench } from 'lucide-react'
+import { Zap, CheckCircle2, RefreshCw, X, Car, User, Clock, MapPin, Phone, Wrench, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Estacion } from '@/lib/supabase/types'
 
 const INTERVALO_SEG = 30
@@ -52,7 +52,6 @@ function EstacionModal({ est, sesion, onClose }: { est: Estacion; sesion: Sesion
         className="relative bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
         <div className={`px-5 pt-5 pb-4 ${ocupada ? 'bg-gradient-to-r from-red-500 to-rose-400' : 'bg-gradient-to-r from-green-500 to-emerald-400'}`}>
           <div className="flex items-start justify-between">
             <div>
@@ -70,7 +69,6 @@ function EstacionModal({ est, sesion, onClose }: { est: Estacion; sesion: Sesion
         </div>
 
         <div className="px-5 py-4 space-y-4">
-          {/* Info estación */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gray-50 rounded-xl p-3">
               <div className="flex items-center gap-1.5 mb-1">
@@ -90,60 +88,34 @@ function EstacionModal({ est, sesion, onClose }: { est: Estacion; sesion: Sesion
 
           {ocupada && sesion && (
             <>
-              {/* Barra de tiempo */}
               <div>
                 <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-                  <span>
-                    Tiempo: <strong className="tabular-nums">
-                      {String(timer.h).padStart(2,'0')}:{String(timer.m).padStart(2,'0')}:{String(timer.s).padStart(2,'0')}
-                    </strong>
-                  </span>
+                  <span>Tiempo: <strong className="tabular-nums">{String(timer.h).padStart(2,'0')}:{String(timer.m).padStart(2,'0')}:{String(timer.s).padStart(2,'0')}</strong></span>
                   <span className={timer.critico ? 'text-amber-600 font-semibold' : ''}>
                     {timer.vencida ? '¡Tiempo vencido!' : `${timer.rh > 0 ? timer.rh + 'h ' : ''}${timer.rm}min restantes`}
                   </span>
                 </div>
                 <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${timer.vencida ? 'bg-red-500' : timer.critico ? 'bg-amber-400' : 'bg-green-400'}`}
-                    style={{ width: `${timer.porcentaje}%` }}
-                  />
+                  <div className={`h-full rounded-full transition-all ${timer.vencida ? 'bg-red-500' : timer.critico ? 'bg-amber-400' : 'bg-green-400'}`} style={{ width: `${timer.porcentaje}%` }} />
                 </div>
               </div>
-
-              {/* Datos usuario */}
               <div className="grid grid-cols-1 gap-3">
                 <div className="bg-gray-50 rounded-xl p-3">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <User className="w-4 h-4 text-orange-500" />
-                    <span className="text-xs text-gray-400 font-medium">Usuario</span>
-                  </div>
+                  <div className="flex items-center gap-1.5 mb-1"><User className="w-4 h-4 text-orange-500" /><span className="text-xs text-gray-400 font-medium">Usuario</span></div>
                   <p className="font-semibold text-gray-800 text-sm">{sesion.nombre_completo}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-gray-50 rounded-xl p-3">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Car className="w-4 h-4 text-orange-500" />
-                      <span className="text-xs text-gray-400 font-medium">Placa</span>
-                    </div>
+                    <div className="flex items-center gap-1.5 mb-1"><Car className="w-4 h-4 text-orange-500" /><span className="text-xs text-gray-400 font-medium">Placa</span></div>
                     <p className="font-semibold text-gray-800 text-sm font-mono">{sesion.placa}</p>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-3">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Clock className="w-4 h-4 text-orange-500" />
-                      <span className="text-xs text-gray-400 font-medium">Desde</span>
-                    </div>
-                    <p className="font-semibold text-gray-800 text-sm">
-                      {new Date(sesion.desde).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
+                    <div className="flex items-center gap-1.5 mb-1"><Clock className="w-4 h-4 text-orange-500" /><span className="text-xs text-gray-400 font-medium">Desde</span></div>
+                    <p className="font-semibold text-gray-800 text-sm">{new Date(sesion.desde).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-3 col-span-2">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Phone className="w-4 h-4 text-orange-500" />
-                      <span className="text-xs text-gray-400 font-medium">Celular</span>
-                    </div>
-                    <a href={`tel:${sesion.celular}`} className="font-semibold text-orange-600 text-sm hover:underline">
-                      {sesion.celular}
-                    </a>
+                    <div className="flex items-center gap-1.5 mb-1"><Phone className="w-4 h-4 text-orange-500" /><span className="text-xs text-gray-400 font-medium">Celular</span></div>
+                    <a href={`tel:${sesion.celular}`} className="font-semibold text-orange-600 text-sm hover:underline">{sesion.celular}</a>
                   </div>
                 </div>
               </div>
@@ -159,11 +131,90 @@ function EstacionModal({ est, sesion, onClose }: { est: Estacion; sesion: Sesion
         </div>
 
         <div className="px-5 pb-5">
-          <button onClick={onClose} className="w-full border border-gray-200 text-gray-600 font-medium py-3 rounded-xl hover:bg-gray-50 transition text-sm">
-            Cerrar
-          </button>
+          <button onClick={onClose} className="w-full border border-gray-200 text-gray-600 font-medium py-3 rounded-xl hover:bg-gray-50 transition text-sm">Cerrar</button>
         </div>
       </div>
+    </div>
+  )
+}
+
+function GrupoConector({
+  tipo,
+  estaciones,
+  ocupadas,
+  onToggle,
+  toggling,
+  onVerDetalle,
+}: {
+  tipo: string
+  estaciones: Estacion[]
+  ocupadas: Record<string, SesionActiva>
+  onToggle: (est: Estacion) => void
+  toggling: string | null
+  onVerDetalle: (est: Estacion) => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const activas = estaciones.filter(e => e.activa)
+  const libres = activas.filter(e => !ocupadas[e.id]).length
+  const enMant = estaciones.filter(e => !e.activa).length
+  const hayOcupadas = estaciones.some(e => e.activa && ocupadas[e.id])
+
+  return (
+    <div className="rounded-xl border-2 border-gray-200 overflow-hidden">
+      {/* Cabecera del grupo */}
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition text-left"
+      >
+        <div className="flex items-center gap-3">
+          <div className={`w-3 h-3 rounded-full ${hayOcupadas ? 'bg-red-400' : libres > 0 ? 'bg-green-400' : 'bg-amber-400'}`} />
+          <span className="font-bold text-gray-800 text-sm">Estación {tipo}</span>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+            libres === 0 && enMant === estaciones.length ? 'bg-amber-100 text-amber-700' :
+            libres === 0 ? 'bg-red-100 text-red-700' :
+            libres === activas.length ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+          }`}>
+            {libres}/{activas.length} libres{enMant > 0 ? ` · ${enMant} mant.` : ''}
+          </span>
+        </div>
+        {expanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+      </button>
+
+      {/* Estaciones individuales */}
+      {expanded && (
+        <div className="divide-y divide-gray-100">
+          {estaciones.map(est => {
+            const sesion = ocupadas[est.id]
+            const ocupada = !!sesion
+            const mant = !est.activa
+            return (
+              <div key={est.id} className={`px-4 py-3 flex items-center gap-3 ${mant ? 'bg-amber-50' : ocupada ? 'bg-red-50' : 'bg-white'}`}>
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${mant ? 'bg-amber-400' : ocupada ? 'bg-red-400 animate-pulse' : 'bg-green-400'}`} />
+                <div className="flex-1 min-w-0">
+                  <button onClick={() => onVerDetalle(est)} className="text-left">
+                    <p className="text-sm font-semibold text-gray-800">{est.nombre}</p>
+                    {mant && <p className="text-xs text-amber-600">En mantenimiento</p>}
+                    {!mant && ocupada && sesion && <p className="text-xs text-red-600 truncate">{sesion.nombre_completo} · {sesion.placa}</p>}
+                    {!mant && !ocupada && <p className="text-xs text-green-600">Disponible</p>}
+                  </button>
+                </div>
+                <button
+                  onClick={() => onToggle(est)}
+                  disabled={toggling === est.id}
+                  className={`flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg border transition flex items-center gap-1 ${
+                    mant
+                      ? 'border-green-300 text-green-700 bg-green-50 hover:bg-green-100'
+                      : 'border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100'
+                  }`}
+                >
+                  <Wrench className="w-3 h-3" />
+                  {toggling === est.id ? '...' : mant ? 'Activar' : 'Mant.'}
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
@@ -218,7 +269,14 @@ export default function EstacionesRealtime({ estacionesIniciales, sesionesInicia
     setToggling(null)
   }
 
-  const libres = estaciones.filter(e => e.activa && !ocupadas[e.id]).length
+  // Agrupar por tipo
+  const grupos = estaciones.reduce<Record<string, Estacion[]>>((acc, e) => {
+    if (!acc[e.tipo_conector]) acc[e.tipo_conector] = []
+    acc[e.tipo_conector].push(e)
+    return acc
+  }, {})
+
+  const libresTotal = estaciones.filter(e => e.activa && !ocupadas[e.id]).length
 
   return (
     <>
@@ -235,7 +293,7 @@ export default function EstacionesRealtime({ estacionesIniciales, sesionesInicia
           <h2 className="text-sm font-semibold text-gray-700">Estado de estaciones</h2>
           <div className="flex items-center gap-3">
             <span className="text-xs text-gray-400">
-              {libres}/{estaciones.length} libres · {ultimaActualizacion.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              {libresTotal}/{estaciones.length} libres · {ultimaActualizacion.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </span>
             <button onClick={recargar} className="flex items-center gap-1 text-xs text-green-600 hover:text-green-800 transition">
               <RefreshCw className="w-3.5 h-3.5" />{countdown}s
@@ -243,69 +301,18 @@ export default function EstacionesRealtime({ estacionesIniciales, sesionesInicia
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {estaciones.map(est => {
-            const sesion = ocupadas[est.id]
-            const ocupada = !!sesion
-            const mantenimiento = !est.activa
-            return (
-              <div
-                key={est.id}
-                className={`rounded-xl border-2 p-4 flex flex-col gap-2 transition-all duration-300 ${
-                  mantenimiento ? 'border-amber-300 bg-amber-50' :
-                  ocupada ? 'border-red-300 bg-red-50' : 'border-green-300 bg-green-50'
-                }`}
-              >
-                {/* Header clickable para ver detalle */}
-                <button onClick={() => setSeleccionada(est)} className="text-left w-full">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {mantenimiento
-                        ? <Wrench className="w-4 h-4 text-amber-500" />
-                        : <Zap className={`w-4 h-4 ${ocupada ? 'text-red-500' : 'text-green-600'}`} />
-                      }
-                      <span className="font-semibold text-sm text-gray-900">{est.nombre}</span>
-                    </div>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                      mantenimiento ? 'bg-amber-100 text-amber-700' :
-                      ocupada ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                    }`}>
-                      {mantenimiento ? 'MANT.' : ocupada ? 'OCUPADA' : 'LIBRE'}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">{est.ubicacion} · {est.tipo_conector}</p>
-                  {!mantenimiento && ocupada && sesion && (
-                    <div className="text-xs text-red-700 space-y-0.5 mt-1">
-                      <p className="font-medium truncate">{sesion.nombre_completo}</p>
-                      <p className="font-mono">{sesion.placa}</p>
-                    </div>
-                  )}
-                  {!mantenimiento && !ocupada && (
-                    <div className="flex items-center gap-1 text-xs text-green-700 mt-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />Disponible
-                    </div>
-                  )}
-                  {mantenimiento && (
-                    <p className="text-xs text-amber-600 mt-1">No disponible para usuarios</p>
-                  )}
-                </button>
-
-                {/* Toggle mantenimiento */}
-                <button
-                  onClick={() => toggleMantenimiento(est)}
-                  disabled={toggling === est.id}
-                  className={`w-full mt-1 text-xs font-medium py-1.5 rounded-lg border transition flex items-center justify-center gap-1.5 ${
-                    mantenimiento
-                      ? 'border-green-300 text-green-700 bg-green-50 hover:bg-green-100'
-                      : 'border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100'
-                  }`}
-                >
-                  <Wrench className="w-3 h-3" />
-                  {toggling === est.id ? 'Actualizando...' : mantenimiento ? 'Activar estación' : 'Poner en mantenimiento'}
-                </button>
-              </div>
-            )
-          })}
+        <div className="flex flex-col gap-3">
+          {Object.entries(grupos).map(([tipo, ests]) => (
+            <GrupoConector
+              key={tipo}
+              tipo={tipo}
+              estaciones={ests}
+              ocupadas={ocupadas}
+              onToggle={toggleMantenimiento}
+              toggling={toggling}
+              onVerDetalle={setSeleccionada}
+            />
+          ))}
         </div>
       </div>
     </>
