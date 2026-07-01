@@ -6,9 +6,8 @@ const LIMITE_HORAS = 4
 const AVISO_MINUTOS = 30
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const token = searchParams.get('secret') || request.headers.get('authorization')?.replace('Bearer ', '')
-  if (token !== process.env.CRON_SECRET) {
+  const authHeader = request.headers.get('authorization')
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
