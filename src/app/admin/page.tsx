@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Activity, Users, BatteryCharging, Clock } from 'lucide-react'
 import AdminCharts from '@/components/AdminCharts'
 import EstacionesRealtime from '@/components/EstacionesRealtime'
+import TestCronButton from '@/components/TestCronButton'
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
@@ -88,6 +89,8 @@ export default async function AdminDashboard() {
         estacionesIniciales={estaciones ?? []}
         sesionesInicialesMap={sesionesMap}
       />
+
+      <TestCronButton />
 
       <AdminCharts data={chartData} />
     </div>
